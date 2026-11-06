@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:">
+  <title>CloudBerth</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="ambient" class="ambient" aria-hidden="true"></div>
+  <header class="topbar">
+    <p class="brand">
+      <img class="brand-mark" src="brand-mark.svg" alt="">
+      CloudBerth
+    </p>
+    <h1 class="visually-hidden">选择一个游戏</h1>
+    <div class="topbar-actions">
+      <button id="settingsButton" class="ghost-button" type="button">快捷键设置</button>
+      <button id="addButton" class="outline-button" type="button">添加游戏</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="gameSection" aria-labelledby="gamesTitle">
+      <h2 id="gamesTitle" class="visually-hidden">游戏库</h2>
+      <div id="emptyState" class="empty-state" hidden>
+        <h3>还没有游戏</h3>
+        <p>添加云游戏平台或游戏页面的 HTTPS 地址。</p>
+        <button id="emptyAddButton" class="primary-button" type="button">添加第一个游戏</button>
+      </div>
+      <div class="game-stage">
+        <div id="gameGrid" class="game-grid"></div>
+      </div>
+    </section>
+
+    <section id="settingsSection" class="settings-panel" aria-labelledby="settingsTitle" hidden>
+      <div class="settings-sheet">
+      <div class="section-heading">
+        <div>
+          <h2 id="settingsTitle">快捷键设置</h2>
+          <p>双击快捷键开始录入；ESC 取消。修改或恢复默认后点击保存。</p>
+        </div>
+        <button id="settingsCloseButton" class="outline-button" type="button">返回游戏库</button>
+      </div>
+      <form id="shortcutForm" class="shortcut-form">
+        <label>
+          <span><strong>切换全屏</strong><small>在窗口与全屏之间切换</small></span>
+          <span class="shortcut-controls">
+            <span class="shortcut-capture">
+              <input data-shortcut="toggleDisplay" readonly title="双击开始录入快捷键" aria-label="双击开始录入快捷键">
+              <span class="keycaps" aria-hidden="true"></span>
+            </span>
+            <button class="ghost-button shortcut-reset" type="button" data-reset-shortcut="toggleDisplay">恢复默认</button>
+          </span>
+        </label>
+        <label>
+          <span><strong>返回游戏库</strong><small>回到游戏列表，游戏窗口继续运行</small></span>
+          <span class="shortcut-controls">
+            <span class="shortcut-capture">
+              <input data-shortcut="home" readonly title="双击开始录入快捷键" aria-label="双击开始录入快捷键">
+              <span class="keycaps" aria-hidden="true"></span>
+            </span>
+            <button class="ghost-button shortcut-reset" type="button" data-reset-shortcut="home">恢复默认</button>
+          </span>
+        </label>
+        <label>
+          <span><strong>退出应用</strong><small>即使网页尝试拦截关闭也能退出</small></span>
+          <span class="shortcut-controls">
+            <span class="shortcut-capture">
+              <input data-shortcut="quit" readonly title="双击开始录入快捷键" aria-label="双击开始录入快捷键">
+              <span class="keycaps" aria-hidden="true"></span>
+            </span>
+            <button class="ghost-button shortcut-reset" type="button" data-reset-shortcut="quit">恢复默认</button>
+          </span>
+        </label>
+        <div class="form-actions">
+          <span id="shortcutMessage" class="form-message" role="status"></span>
+          <button class="primary-button" type="submit">保存快捷键</button>
+        </div>
+      </form>
+      <div class="settings-notes">
+        <p>Mac 游戏中可将鼠标移到屏幕顶部，在“窗口”菜单中退出全屏或返回游戏库。</p>
+        <p>独立游戏窗口，随时回到游戏库。入口与登录会话保存在本机。</p>
+      </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="legend">
+    <p id="shortcutHint" class="legend-keys"></p>
+    <p id="gameCount" class="legend-count"></p>
+  </footer>
+
+  <dialog id="gameDialog" aria-labelledby="dialogTitle">
+    <form id="gameForm" class="entry-form" method="dialog">
+      <input id="gameId" type="hidden">
+      <div class="entry-poster">
+        <div id="avatarPreview" class="poster-stage"></div>
+        <div class="poster-content">
+          <div id="avatarAnchor" class="poster-avatar"></div>
+          <p id="previewName" class="poster-name"></p>
+          <div class="avatar-buttons">
+            <button id="chooseAvatarButton" class="outline-button" type="button">选择图片</button>
+            <button id="autoAvatarButton" class="outline-button" type="button">使用网站图标</button>
+          </div>
+          <small id="avatarStatus"></small>
+        </div>
+      </div>
+      <div class="entry-fields">
+        <div class="dialog-heading">
+          <h2 id="dialogTitle">添加游戏</h2>
+          <button id="dialogCloseButton" class="icon-button" type="button" aria-label="关闭"></button>
+        </div>
+        <label class="field">游戏名称
+          <input id="gameName" maxlength="80" autocomplete="off" required placeholder="例如：原神云游戏">
+        </label>
+        <label class="field">HTTPS 地址
+          <input id="gameUrl" type="url" maxlength="2048" required placeholder="https://...">
+        </label>
+        <p id="gameMessage" class="form-message error" role="alert"></p>
+        <div class="dialog-actions">
+          <button id="cancelButton" class="ghost-button" type="button">取消</button>
+          <button class="primary-button" type="submit">保存</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="deleteDialog" class="confirm-dialog" aria-labelledby="deleteTitle">
+    <form method="dialog">
+      <h2 id="deleteTitle">删除这个游戏？</h2>
+      <p id="deleteMessage"></p>
+      <div class="dialog-actions">
+        <button id="deleteCancelButton" class="ghost-button" type="button">取消</button>
+        <button id="deleteConfirmButton" class="danger-button" type="button">删除</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

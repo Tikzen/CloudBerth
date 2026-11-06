@@ -1,0 +1,14 @@
+{
+  "startUrl": "https://example.com",
+  "startMode": "kiosk",
+  "rememberWindowBounds": true,
+  "stripElectronFromUserAgent": true,
+  "htmlFullscreenPolicy": "block",
+  "enableDevTools": false,
+  "allowedPermissionHosts": [],
+  "shortcuts": {
+    "toggleDisplay": "F11",
+    "quit": "Ctrl+Shift+Q",
+    "home": "Ctrl+Shift+H"
+  }
+}

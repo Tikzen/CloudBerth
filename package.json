@@ -1,0 +1,112 @@
+{
+  "name": "cloudberth",
+  "productName": "CloudBerth",
+  "version": "1.3.0",
+  "description": "一个专为网页云游戏打造的沉浸式体验空间",
+  "author": "CloudBerth contributors",
+  "main": "main.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "node tools/run.js start",
+    "test:manual": "node tools/run.js manual",
+    "test:close": "node tools/run.js close",
+    "test:launcher": "node tools/run.js launcher",
+    "test:mac": "node tools/run.js mac-test",
+    "check": "node tools/check.js",
+    "pack": "node tools/run.js pack",
+    "dist": "node tools/run.js dist",
+    "dist:mac": "node tools/run.js dist --mac --arm64",
+    "dist:mac:intel": "node tools/run.js dist --mac --x64",
+    "dist:win": "node tools/run.js dist --win portable --x64",
+    "test:runtime": "node tools/run.js runtime",
+    "test:shortcuts": "node tools/run.js shortcuts",
+    "test:identity": "node tools/identity-smoke.js"
+  },
+  "devDependencies": {
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "com.cloudberth.app",
+    "productName": "CloudBerth",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "src/**/*",
+      "build/icon.png",
+      "config.default.json",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "CloudBerth-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "CloudBerth-${version}-${arch}.${ext}"
+    },
+    "mac": {
+      "category": "public.app-category.games",
+      "icon": "build/icon.png",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "artifactName": "CloudBerth-${version}-mac-${arch}.${ext}",
+      "identity": "-",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "云游戏平台需要在你允许后使用麦克风进行游戏语音。",
+        "NSCameraUsageDescription": "云游戏平台需要在你允许后使用摄像头进行视频聊天。"
+      },
+      "hardenedRuntime": false,
+      "minimumSystemVersion": "13.0.0"
+    },
+    "dmg": {
+      "title": "CloudBerth ${version}",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "overrides": {
+    "@electron/universal": {
+      "minimatch": "11.0.5"
+    },
+    "app-builder-lib": {
+      "minimatch": "11.0.5"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tikzen/CloudBerth.git"
+  },
+  "homepage": "https://github.com/Tikzen/CloudBerth#readme",
+  "bugs": {
+    "url": "https://github.com/Tikzen/CloudBerth/issues"
+  }
+}

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CloudBerth 输入与全屏测试</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 32px; background: #10141a; color: #f5f7fa; }
+    main { max-width: 900px; margin: auto; }
+    section { margin: 20px 0; padding: 20px; border: 1px solid #384455; border-radius: 8px; background: #18202a; }
+    button { margin: 6px 8px 6px 0; padding: 10px 14px; font-size: 16px; }
+    output, pre { color: #8de3a8; white-space: pre-wrap; overflow-wrap: anywhere; }
+    #mouseArea { height: 120px; display: grid; place-items: center; border: 1px dashed #728197; user-select: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>CloudBerth 手工测试</h1>
+    <p id="shortcutHint">F11 切换原生全屏；Ctrl+Shift+Q 退出。ESC 应留在本页并增加计数。</p>
+
+    <section>
+      <h2>HTML Fullscreen</h2>
+      <button id="fullscreenButton">Request HTML Fullscreen</button>
+      <div>document.fullscreenElement：<output id="fullscreenState">false</output></div>
+    </section>
+
+    <section>
+      <h2>ESC</h2>
+      <div>ESC received: <output id="escapeCount">0</output></div>
+      <div>Last key: <output id="lastKey">none</output></div>
+    </section>
+
+    <section>
+      <h2>Pointer Lock</h2>
+      <button id="pointerButton">Request Pointer Lock</button>
+      <div id="mouseArea">点击按钮后移动鼠标；按 ESC 可释放 Pointer Lock</div>
+      <div>Status: <output id="pointerState">inactive</output></div>
+      <div>movementX: <output id="movementX">0</output></div>
+      <div>movementY: <output id="movementY">0</output></div>
+    </section>
+
+    <section>
+      <h2>Gamepad</h2>
+      <div>Connected: <output id="gamepadCount">0</output></div>
+      <pre id="gamepads">未检测到手柄</pre>
+    </section>
+  </main>
+
+  <script>
+    'use strict';
+
+    const byId = (id) => document.getElementById(id);
+    if (navigator.userAgent.includes('Macintosh')) {
+      byId('shortcutHint').textContent = 'Shift+Command+F 切换全屏；Command+Q 退出；Command+Shift+H 返回主页。ESC 应留在本页并增加计数。';
+    }
+    let escapeCount = 0;
+
+    byId('fullscreenButton').addEventListener('click', async () => {
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch (error) {
+        byId('fullscreenState').textContent = `blocked: ${error.message}`;
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      byId('fullscreenState').textContent =
+        document.fullscreenElement ? 'true' : 'false';
+    });
+
+    document.addEventListener('keydown', (event) => {
+      byId('lastKey').textContent = event.key;
+      if (event.key === 'Escape') {
+        escapeCount += 1;
+        byId('escapeCount').textContent = String(escapeCount);
+      }
+    });
+
+    byId('pointerButton').addEventListener('click', () => {
+      byId('mouseArea').requestPointerLock();
+    });
+    document.addEventListener('pointerlockchange', () => {
+      byId('pointerState').textContent =
+        document.pointerLockElement ? 'Pointer Lock Active' : 'inactive';
+    });
+    document.addEventListener('mousemove', (event) => {
+      if (!document.pointerLockElement) return;
+      byId('movementX').textContent = String(event.movementX);
+      byId('movementY').textContent = String(event.movementY);
+    });
+
+    function updateGamepads() {
+      const pads = [...navigator.getGamepads()].filter(Boolean);
+      byId('gamepadCount').textContent = String(pads.length);
+      byId('gamepads').textContent = pads.length
+        ? pads.map((pad, index) => [
+          `#${index}: ${pad.id}`,
+          `axes: ${pad.axes.map((value) => value.toFixed(3)).join(', ')}`,
+          `buttons: ${pad.buttons.map((button) => button.value.toFixed(2)).join(', ')}`
+        ].join('\n')).join('\n\n')
+        : '未检测到手柄';
+      requestAnimationFrame(updateGamepads);
+    }
+    updateGamepads();
+  </script>
+</body>
+</html>
