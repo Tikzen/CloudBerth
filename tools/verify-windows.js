@@ -36,9 +36,12 @@ for (const file of ['main.js', 'src/identity.js', 'src/platform.js', 'src/runtim
 assert(![...archivedFiles].some((file) =>
   /^\/(tools|tmp|docs|node_modules)\//.test(file) || /(^|\/)(launcher|config)\.json$/.test(file)));
 
-const artifact = `CloudBerth-${sourcePackage.version}-x64.exe`;
-const portable = fs.readFileSync(path.join(output, artifact));
-assert.equal(portable.toString('ascii', 0, 2), 'MZ', 'The portable launcher must be a Windows executable');
-const digest = crypto.createHash('sha256').update(portable).digest('hex');
-fs.writeFileSync(path.join(output, 'SHA256SUMS-windows.txt'), `${digest}  ${artifact}\n`);
-console.log('PASS: Windows x64 PE architecture, production source and metadata, excluded personal/developer data, portable executable and SHA-256.');
+console.log('PASS: Windows x64 PE architecture, production source and metadata, excluded personal/developer data.');
+if (!process.argv.includes('--unpacked-only')) {
+  const artifact = `CloudBerth-${sourcePackage.version}-x64.exe`;
+  const portable = fs.readFileSync(path.join(output, artifact));
+  assert.equal(portable.toString('ascii', 0, 2), 'MZ', 'The portable launcher must be a Windows executable');
+  const digest = crypto.createHash('sha256').update(portable).digest('hex');
+  fs.writeFileSync(path.join(output, 'SHA256SUMS-windows.txt'), `${digest}  ${artifact}\n`);
+  console.log('PASS: portable executable and SHA-256 checksum.');
+}

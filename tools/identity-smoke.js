@@ -22,7 +22,10 @@ let holder;
 try {
   run('seed');
   const legacy = path.join(temp, 'CloudGameShell');
-  const cookiesBefore = hash(path.join(legacy, 'Partitions/cloud-game/Cookies'));
+  const cookieFile = ['Partitions/cloud-game/Cookies', 'Partitions/cloud-game/Network/Cookies']
+    .map((relative) => path.join(legacy, relative)).find((file) => fs.existsSync(file));
+  assert(cookieFile, 'The seeded legacy Cookie database must exist');
+  const cookiesBefore = hash(cookieFile);
   const libraryBefore = hash(path.join(legacy, 'launcher.json'));
   holder = spawn(require('electron'), [path.join(__dirname, 'identity-fixture.js'), 'busy-legacy', temp], {
     env, stdio: ['ignore', 'ignore', 'ignore', 'ipc']
@@ -36,7 +39,7 @@ try {
   await new Promise((resolve) => { holder.once('exit', resolve); holder.kill(); });
   holder = null;
   run('migrate');
-  assert.equal(hash(path.join(legacy, 'Partitions/cloud-game/Cookies')), cookiesBefore);
+  assert.equal(hash(cookieFile), cookiesBefore);
   assert.equal(hash(path.join(legacy, 'launcher.json')), libraryBefore);
   run('reopen');
   console.log('PASS: CloudBerth name, data directory and app identity; legacy settings, encrypted Cookies and localStorage migrate and survive restart.');
