@@ -9,6 +9,7 @@ const logger = { info() {} };
 const shortcuts = { toggleDisplay: 'Shift+Meta+F', home: 'Shift+Meta+H', quit: 'Meta+Q' };
 assert.equal(shortcutFromInput({ key: '\u0006', code: 'KeyF', control: true, meta: true }), 'Ctrl+Meta+F');
 assert.equal(shortcutFromInput({ key: '中', code: 'KeyH', shift: true, meta: true }), shortcuts.home);
+assert.equal(shortcutFromInput({ key: 'ƒ', code: 'KeyF', alt: true, shift: true }), 'Alt+Shift+F');
 assert.equal(shortcutFromInput({ key: 'Escape', code: 'Escape' }), null);
 
 class TestWindow extends EventEmitter {

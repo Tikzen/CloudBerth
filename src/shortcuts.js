@@ -90,11 +90,11 @@ function shortcutFromInput(input, { strict = false } = {}) {
   if (input.shift) parts.push('Shift');
   if (input.meta) parts.push('Meta');
   let key = input.key;
-  // With Control held, macOS can report a control character instead of a
-  // letter. IMEs can also change key; code still identifies the shortcut key.
-  if ((input.control || input.meta) && /^Key[A-Z]$/.test(input.code || '')) {
+  // Modified letters can become control characters or layout-specific symbols.
+  // Physical codes keep Control, Command and Alt shortcuts consistent with IMEs.
+  if ((input.control || input.meta || input.alt) && /^Key[A-Z]$/.test(input.code || '')) {
     key = input.code.slice(3);
-  } else if ((input.control || input.meta) && /^Digit[0-9]$/.test(input.code || '')) {
+  } else if ((input.control || input.meta || input.alt) && /^Digit[0-9]$/.test(input.code || '')) {
     key = input.code.slice(5);
   }
   if (key === ' ') key = 'Space';
