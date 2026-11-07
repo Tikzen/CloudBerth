@@ -29,7 +29,7 @@ for (const file of ['main.js', 'src/identity.js', 'src/platform.js', 'src/runtim
   'build/icon.png', 'LICENSE', 'THIRD_PARTY_NOTICES.md']) {
   assert(asar.extractFile(archive, file).equals(fs.readFileSync(path.join(root, file))), file);
 }
-assert(!asar.listPackage(archive).some((file) =>
+assert(!asar.listPackage(archive).map((file) => file.replaceAll('\\', '/')).some((file) =>
   /^\/(tools|tmp|docs|node_modules)\//.test(file) || /(^|\/)(launcher|config)\.json$/.test(file)));
 
 const artifact = `CloudBerth-${sourcePackage.version}-x64.exe`;
