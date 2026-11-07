@@ -1,3 +1,5 @@
+> **Windows 测试分支**：本目录单独维护 Windows x64 源码，默认使用 Alt 组合键。构建方法见 [WINDOWS.md](WINDOWS.md)。下方稳定版下载链接仍指向已发布的 Mac 版本。
+
 <h1 align="center">CloudBerth</h1>
 
 <p align="center">一个专为网页云游戏打造的沉浸式体验空间</p>

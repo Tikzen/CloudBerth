@@ -55,7 +55,9 @@ function startLegacyCookieWorker(app, session) {
     return;
   }
   try {
-    const excluded = new Set(['SingletonLock', 'SingletonCookie', 'SingletonSocket', MARKER,
+    // Windows uses "lockfile" while macOS uses Singleton*. The target profile
+    // already holds its own lock; replacing it would fail or break exclusion.
+    const excluded = new Set(['SingletonLock', 'SingletonCookie', 'SingletonSocket', 'lockfile', MARKER,
       'logs', 'Cache', 'Code Cache', 'GPUCache', 'DawnGraphiteCache', 'DawnWebGPUCache']);
     fs.cpSync(legacyPath, dataPath, { recursive: true,
       filter: (source) => !excluded.has(path.basename(source)) });
