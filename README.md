@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Tikzen/CloudBerth/releases/latest">下载安装</a> ·
+  <a href="#下载安装">下载安装</a> ·
   <a href="#开始使用">开始使用</a> ·
   <a href="#开发与构建">开发与构建</a> ·
   <a href="https://github.com/Tikzen/CloudBerth/issues">反馈问题</a>
@@ -17,15 +17,15 @@
 
 ![CloudBerth 启动器](docs/images/launcher.png)
 
-<p align="center"><sub>启动器界面示例。游戏名称、头像与运行状态均为演示数据，入口可自行添加。</sub></p>
+<p align="center"><sub>界面截图来自 Mac 版。游戏名称、头像与运行状态均为演示数据，入口可自行添加；Windows 的快捷键和系统窗口控件有所不同。</sub></p>
 
 ## 为网页云游戏留一块专注的空间
 
 在普通浏览器里玩云游戏，按键有时会触发刷新、关窗或缩放；ESC 可能退出全屏，切回游戏列表也会打断体验。
 
-CloudBerth 为 **macOS** 提供专用的云游戏窗口：处理常见浏览器按键冲突，使用系统原生全屏，将游戏与启动器分开，让操作更接近独立游戏客户端。
+CloudBerth 提供专用的云游戏窗口：处理常见浏览器按键冲突，使用系统原生全屏，将游戏与启动器分开，让操作更接近独立游戏客户端。
 
-**目前仅支持 macOS，当前提供 Apple Silicon 安装包。**
+**Mac 提供稳定版，Windows x64 提供预发布测试版（Pre-release）。**
 
 - **独立游戏窗口**：启动器与游戏分离，返回游戏库时游戏页面继续保留，再次点击即可回到原窗口。
 - **直观的运行状态**：按钮显示“运行中”，右侧菜单可结束指定游戏；重复点击会聚焦已有窗口。
@@ -40,13 +40,16 @@ CloudBerth 基于 Electron，不提供云游戏算力或账号服务。游戏兼
 
 ## 下载安装
 
-前往 **[Releases 下载最新版本](https://github.com/Tikzen/CloudBerth/releases/latest)**。
+| 平台 | 版本与状态 | 下载 |
+| --- | --- | --- |
+| macOS 13+ · Apple Silicon（M 系列） | **1.3.0 稳定版** | [DMG / ZIP](https://github.com/Tikzen/CloudBerth/releases/tag/v1.3.0) |
+| Windows x64 | **1.3.1 测试版 · Pre-release** | [便携 EXE](https://github.com/Tikzen/CloudBerth/releases/tag/v1.3.1-windows-test) |
 
-**暂时只支持 Mac 版。** 当前发行包适用于 **macOS 13+、Apple Silicon（M 系列芯片）**，提供 DMG 和 ZIP。Intel Mac 尚未提供经过实机验证的发行包；暂不提供 Windows 或 Linux 版本。
+Mac 打开 DMG，将 **CloudBerth.app** 拖入“应用程序”后启动。当前 Mac 发行包使用本机临时签名，尚未完成 Apple Developer ID 签名与公证。
 
-Mac 打开 DMG，将 **CloudBerth.app** 拖入“应用程序”后启动。当前发行包使用本机临时签名，尚未完成 Apple Developer ID 签名与公证。
+Windows 下载 `CloudBerth-1.3.1-x64.exe`，在 Windows 电脑上双击运行，无需安装。该版本为**未签名的预发布测试版**：已通过 Windows 环境中的启动器、窗口管理、Alt 快捷键、全屏、打包完整性与数据迁移自动化检查；真实云游戏串流、GPU、手柄及各平台登录兼容性仍需实机验证。
 
-发行附件包含 SHA256SUMS.txt，可用于核对下载文件完整性。
+两个版本分别提供 SHA-256 校验文件。Mac 稳定版仍保留为 Latest；Windows 测试版单独标记为 Pre-release。Intel Mac 和 Linux 暂无经过验证的发行包。
 
 ## 开始使用
 
@@ -64,13 +67,13 @@ Mac 打开 DMG，将 **CloudBerth.app** 拖入“应用程序”后启动。当�
 
 双击快捷键区域，按下想使用的组合，然后点击“保存快捷键”。ESC 取消录入，三个操作均提供“恢复默认”按钮。
 
-| 操作 | Mac 默认快捷键 |
-| --- | --- |
-| 切换全屏 | ⇧⌘F |
-| 返回游戏库 | ⇧⌘H |
-| 退出应用 | ⌘Q |
+| 操作 | Mac 稳定版 | Windows 测试版 |
+| --- | --- | --- |
+| 切换全屏 | ⇧⌘F | Alt + Shift + F |
+| 返回游戏库 | ⇧⌘H | Alt + Shift + H |
+| 退出应用 | ⌘Q | Alt + Q |
 
-Windows x64 测试构建使用 **Alt + Shift + F** 切换全屏、**Alt + Shift + H** 返回游戏库、**Alt + Q** 退出；不要求 Command 键。可通过仓库的 Windows x64 build 手动工作流编译；当前稳定发行和下载说明仍以 Mac 版为准。
+Windows 测试版使用 Alt 组合键，不要求 Command 键。[下载 Windows 测试版](https://github.com/Tikzen/CloudBerth/releases/tag/v1.3.1-windows-test)。
 
 保存后，主页底部提示与 macOS 原生菜单里的组合键立即同步。三个组合不能重复；ESC 留给游戏，F12 留给调试工具。
 
@@ -87,7 +90,7 @@ flowchart LR
     Filter -->|常见浏览器操作| Block[阻止误刷新、关窗和缩放]
     Filter -->|其余游戏按键与 ESC| Game[云游戏网页]
     Library[本地游戏库] --> Window[独立游戏窗口]
-    Window --> Fullscreen[macOS 原生全屏]
+    Window --> Fullscreen[系统全屏 / 沉浸式窗口]
     Fullscreen --> Game
 ```
 
@@ -95,7 +98,7 @@ flowchart LR
 
 主进程在网页收到按键前识别应用快捷键和常见浏览器操作，拦截刷新、关窗等容易误触的组合，其余按键继续交给游戏。macOS 原生菜单也注册相同的应用快捷键，作为全屏与返回游戏库的操作入口。
 
-系统级快捷键仍由 macOS 处理；网页自己的鼠标锁定或 HTML 全屏可能使用 ESC 解锁。CloudBerth 的原生全屏不会主动用 ESC 退出，尽量保留游戏需要的输入行为。
+系统级快捷键仍由操作系统处理；网页自己的鼠标锁定或 HTML 全屏可能使用 ESC 解锁。CloudBerth 的原生全屏不会主动用 ESC 退出，尽量保留游戏需要的输入行为。
 
 ### 全屏与游戏窗口如何分离
 
@@ -111,7 +114,10 @@ flowchart LR
 
 ## 本地数据与升级
 
-Mac 数据目录：`~/Library/Application Support/CloudBerth/`。
+| 系统 | 数据目录 |
+| --- | --- |
+| macOS | `~/Library/Application Support/CloudBerth/` |
+| Windows | `%APPDATA%/CloudBerth/` |
 
 - `config.json`：应用偏好。
 - `launcher.json`：游戏入口、头像与快捷键。
@@ -128,7 +134,8 @@ Mac 数据目录：`~/Library/Application Support/CloudBerth/`。
 需要 **Node.js 22.12+** 和 npm。当前使用 Electron 45.2.3、electron-builder 26.18.0。
 
 ```sh
-git clone https://github.com/Tikzen/CloudBerth.git
+# Mac 稳定分支
+git clone --branch macos https://github.com/Tikzen/CloudBerth.git CloudBerth
 cd CloudBerth
 npm ci
 npm start
@@ -145,6 +152,17 @@ npm run dist:mac:intel  # 开发构建目标：Intel Mac，尚未实机验证
 
 产物默认输出到 dist/。macOS 生成 DMG 与 ZIP。
 
+Windows 源码单独维护在 [windows 分支](https://github.com/Tikzen/CloudBerth/tree/windows)，建议放在独立目录：
+
+```sh
+git clone --branch windows https://github.com/Tikzen/CloudBerth.git "CloudBerth for Windows"
+cd "CloudBerth for Windows"
+npm ci
+npm run dist:win -- --config.directories.output=dist/windows
+```
+
+在 Windows 上执行构建命令。详细构建、测试与默认快捷键说明见 [Windows 开发说明](https://github.com/Tikzen/CloudBerth/blob/windows/WINDOWS.md)。
+
 ### 检查与测试
 
 ```sh
@@ -157,7 +175,7 @@ npm run test:identity
 npm run test:mac
 ```
 
-集成测试使用隔离临时目录。窗口测试会短暂显示窗口并切换全屏；test:mac 仅适用于 macOS，test:runtime 的网站图标检查需要网络。
+集成测试使用隔离临时目录。窗口测试会短暂显示窗口并切换全屏；test:mac 仅适用于 macOS，Windows 分支另提供 `npm run test:win`，test:runtime 的网站图标检查需要网络。
 
 开发者可运行 `npm run test:manual` 检查 ESC、鼠标锁定、手柄输入和全屏。开发测试页面、截图生成脚本与 tools/tmp 不进入正式安装包。README 截图可通过 `node tools/run.js screenshots` 重新生成，仅使用示例数据。
 
