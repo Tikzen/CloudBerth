@@ -18,6 +18,8 @@ assert.equal(exe.readUInt16LE(pe + 4), 0x8664, 'The game application must be Win
 
 const archive = path.join(application, 'resources/app.asar');
 const packageJson = JSON.parse(asar.extractFile(archive, 'package.json'));
+assert.deepEqual(JSON.parse(asar.extractFile(archive, 'config.default.json')).shortcuts,
+  { toggleDisplay: 'Alt+Shift+F', quit: 'Alt+Q', home: 'Alt+Shift+H' });
 for (const key of ['name', 'productName', 'version', 'description']) {
   assert.equal(packageJson[key], sourcePackage[key]);
 }

@@ -2,6 +2,8 @@
 
 更新：2026-11-07；对应版本 1.3.0。以当前源码为准，本文不包含个人配置或账号信息。
 
+1.3.1 补记：Windows 测试构建默认使用 Alt+Shift+F、Alt+Shift+H、Alt+Q；Mac Command 默认值不变。`[data-platform]` 说明段落按 api.platform 显示，恢复按钮继续从 defaultShortcuts 读取各平台默认值。
+
 ## 目标与结构
 
 CloudBerth 是云游戏桌面启动器。启动器是打包的本地页面，游戏使用独立的 BrowserWindow。

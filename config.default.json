@@ -7,8 +7,8 @@
   "enableDevTools": false,
   "allowedPermissionHosts": [],
   "shortcuts": {
-    "toggleDisplay": "F11",
-    "quit": "Ctrl+Shift+Q",
-    "home": "Ctrl+Shift+H"
+    "toggleDisplay": "Alt+Shift+F",
+    "quit": "Alt+Q",
+    "home": "Alt+Shift+H"
   }
 }

@@ -45,7 +45,8 @@ const sourceFiles = [
   'tools/identity-smoke.js',
   'tools/identity-fixture.js',
   'tools/capture-readme.js',
-  'tools/verify-windows.js'
+  'tools/verify-windows.js',
+  'tools/windows-smoke.js'
 ];
 
 for (const file of sourceFiles) {
@@ -62,7 +63,7 @@ const defaults = JSON.parse(fs.readFileSync(defaultsPath, 'utf8'));
 const config = validateConfig(defaults, defaultsPath, false);
 assert.equal(config.startMode, 'kiosk');
 assert.equal(config.htmlFullscreenPolicy, 'block');
-assert.equal(config.shortcuts.home, 'Ctrl+Shift+H');
+assert.equal(config.shortcuts.home, 'Alt+Shift+H');
 
 assert.equal(normalizeShortcut('shift+ctrl+q'), 'Ctrl+Shift+Q');
 assert.equal(normalizeShortcut('f11'), 'F11');
@@ -121,7 +122,8 @@ assert(!packageJson.build.files.some((file) => file.startsWith('tools/')),
 const macDefaults = platformDefaults(defaults, 'darwin');
 assert.equal(macDefaults.shortcuts.quit, 'Meta+Q');
 assert.equal(macDefaults.shortcuts.toggleDisplay, 'Shift+Meta+F');
-assert.equal(platformDefaults(defaults, 'win32').shortcuts.quit, 'Ctrl+Shift+Q');
+assert.deepEqual(platformDefaults(defaults, 'win32').shortcuts,
+  { toggleDisplay: 'Alt+Shift+F', quit: 'Alt+Q', home: 'Alt+Shift+H' });
 assert.equal(normalizeShortcut('Control+Command+f'), 'Ctrl+Meta+F');
 assert.equal(normalizeShortcut('Command+Shift+h'), 'Shift+Meta+H');
 assert.equal(migrateShortcutDefaults({ toggleDisplay: 'Ctrl+Meta+F', home: 'Shift+Meta+H', quit: 'Meta+Q' }, 'darwin').toggleDisplay, 'Shift+Meta+F');

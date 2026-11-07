@@ -30,6 +30,8 @@ jobs:
         run: npm run test:close
       - name: Test game windows and avatars
         run: npm run test:runtime
+      - name: Test Windows Alt shortcuts and fullscreen
+        run: npm run test:win
       - name: Build unsigned portable executable
         run: npm run dist:win -- --config.directories.output=dist/windows --publish never
       - name: Verify Windows executable and production contents

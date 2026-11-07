@@ -15,7 +15,8 @@ const electronCommands = {
   runtime: ['tools/runtime-smoke.js'],
   shortcuts: ['tools/shortcut-smoke.js'],
   screenshots: ['tools/capture-readme.js'],
-  'mac-test': ['tools/mac-smoke.js']
+  'mac-test': ['tools/mac-smoke.js'],
+  'win-test': ['tools/windows-smoke.js']
 };
 let executable;
 let args;

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.1 — Windows 测试构建
+
+- 增加 Windows x64 便携 EXE 的原生构建、打包检查及隔离集成测试。
+- Windows 默认组合为 Alt+Shift+F 全屏、Alt+Shift+H 返回、Alt+Q 退出，Mac 的 Command 组合保持不变。
+- 根据平台显示设置说明，Windows 不再显示 Mac 菜单操作提示。
+- 当前稳定发行仍为 Mac 1.3.0，Windows 构建供测试，不代表已经完成真实云游戏兼容性验证。
+
 ## 1.3.0 — 2026-11-07
 
 - 项目更名为 CloudBerth，更新包名、应用标识、窗口/菜单/页面名称和日志文件名。

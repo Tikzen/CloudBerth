@@ -1,6 +1,9 @@
 'use strict';
 
 const api = window.cloudBerth;
+for (const note of document.querySelectorAll('[data-platform]')) {
+  note.hidden = note.dataset.platform !== api.platform;
+}
 const displayShortcut = (value) => api.platform === 'darwin'
   ? value.replaceAll('Meta', 'Command').replaceAll('Alt', 'Option')
   : value;
