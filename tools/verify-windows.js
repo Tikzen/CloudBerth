@@ -17,6 +17,7 @@ assert.equal(exe.toString('ascii', pe, pe + 4), 'PE\0\0');
 assert.equal(exe.readUInt16LE(pe + 4), 0x8664, 'The game application must be Windows x64');
 
 const archive = path.join(application, 'resources/app.asar');
+const archivedFiles = new Set(asar.listPackage(archive).map((file) => file.replaceAll('\\', '/')));
 const packageJson = JSON.parse(asar.extractFile(archive, 'package.json'));
 assert.deepEqual(JSON.parse(asar.extractFile(archive, 'config.default.json')).shortcuts,
   { toggleDisplay: 'Alt+Shift+F', quit: 'Alt+Q', home: 'Alt+Shift+H' });
@@ -27,9 +28,12 @@ for (const file of ['main.js', 'src/identity.js', 'src/platform.js', 'src/runtim
   'src/window.js', 'src/shortcuts.js', 'src/preload.js', 'src/launcher/index.html',
   'src/launcher/app.js', 'src/launcher/styles.css', 'src/launcher/brand-mark.svg',
   'build/icon.png', 'LICENSE', 'THIRD_PARTY_NOTICES.md']) {
-  assert(asar.extractFile(archive, file).equals(fs.readFileSync(path.join(root, file))), file);
+  assert(archivedFiles.has(`/${file}`), `${file} must be included in the package`);
+  // asar's directory traversal splits on path.sep: nested forward-slash paths
+  // must be normalized on Windows, even though one-level paths happen to work.
+  assert(asar.extractFile(archive, path.normalize(file)).equals(fs.readFileSync(path.join(root, file))), file);
 }
-assert(!asar.listPackage(archive).map((file) => file.replaceAll('\\', '/')).some((file) =>
+assert(![...archivedFiles].some((file) =>
   /^\/(tools|tmp|docs|node_modules)\//.test(file) || /(^|\/)(launcher|config)\.json$/.test(file)));
 
 const artifact = `CloudBerth-${sourcePackage.version}-x64.exe`;
