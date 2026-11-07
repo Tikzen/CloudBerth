@@ -59,8 +59,16 @@ function startLegacyCookieWorker(app, session) {
     // already holds its own lock; replacing it would fail or break exclusion.
     const excluded = new Set(['SingletonLock', 'SingletonCookie', 'SingletonSocket', 'lockfile', MARKER,
       'logs', 'Cache', 'Code Cache', 'GPUCache', 'DawnGraphiteCache', 'DawnWebGPUCache']);
-    fs.cpSync(legacyPath, dataPath, { recursive: true,
-      filter: (source) => !excluded.has(path.basename(source)) });
+    // Migrate application data and persistent sessions, not the browser's live
+    // root process state (Crashpad, metrics, locks, or Local State). The target
+    // owns a fresh encryption state; legacy Local State is used only below in
+    // the isolated decrypting helper.
+    for (const relative of ['config.json', 'launcher.json', 'window-state.json', 'Partitions']) {
+      const source = path.join(legacyPath, relative);
+      if (fs.existsSync(source)) fs.cpSync(source, path.join(dataPath, relative), {
+        recursive: true, filter: (file) => !excluded.has(path.basename(file))
+      });
+    }
     if (fs.existsSync(path.join(legacyPath, 'Local State'))) {
       fs.copyFileSync(path.join(legacyPath, 'Local State'), path.join(profile, 'Local State'));
     }
@@ -73,9 +81,12 @@ function startLegacyCookieWorker(app, session) {
         fs.copyFileSync(path.join(source, file), path.join(destination, file));
       }
     }
-  } catch {
+  } catch (error) {
     app.releaseSingleInstanceLock();
-    process.send({ type: 'error', message: '无法复制旧版数据；原目录保持完整，请重试。' }, () => app.exit(1));
+    // Include only an error code and filename, never profile contents or a
+    // decrypted Cookie. This makes cross-platform copy failures diagnosable.
+    const detail = [error.code, error.syscall, error.path && path.basename(error.path)].filter(Boolean).join(', ');
+    process.send({ type: 'error', message: `无法复制旧版数据${detail ? `（${detail}）` : ''}；原目录保持完整，请重试。` }, () => app.exit(1));
     return;
   }
   app.releaseSingleInstanceLock();
