@@ -44,7 +44,8 @@ const sourceFiles = [
   'tools/shortcut-smoke.js',
   'tools/identity-smoke.js',
   'tools/identity-fixture.js',
-  'tools/capture-readme.js'
+  'tools/capture-readme.js',
+  'tools/verify-windows.js'
 ];
 
 for (const file of sourceFiles) {

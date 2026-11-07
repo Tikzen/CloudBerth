@@ -1,0 +1,50 @@
+name: Windows x64 build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check source and platform defaults
+        run: npm run check
+      - name: Test launcher and remote bridge isolation
+        run: npm run test:launcher
+      - name: Test explicit window close
+        run: npm run test:close
+      - name: Test game windows and avatars
+        run: npm run test:runtime
+      - name: Build unsigned portable executable
+        run: npm run dist:win -- --config.directories.output=dist/windows --publish never
+      - name: Verify Windows executable and production contents
+        run: node tools/verify-windows.js
+      - name: Test migration with the packaged Windows application
+        env:
+          CLOUDBERTH_TEST_PACKAGED_WORKER: '${{ github.workspace }}\dist\windows\win-unpacked\CloudBerth.exe'
+        run: npm run test:identity
+      - name: Upload Windows test build
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: CloudBerth-windows-x64
+          path: |
+            dist/windows/CloudBerth-*-x64.exe
+            dist/windows/SHA256SUMS-windows.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
