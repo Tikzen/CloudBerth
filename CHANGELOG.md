@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.3.1 — Windows 测试构建
+## 1.3.1 — Windows 测试版（Pre-release，2026-11-07）
 
 - 增加 Windows x64 便携 EXE 的原生构建、打包检查及隔离集成测试。
 - Windows 默认组合为 Alt+Shift+F 全屏、Alt+Shift+H 返回、Alt+Q 退出，Mac 的 Command 组合保持不变。
