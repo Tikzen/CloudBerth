@@ -25,7 +25,7 @@ for (const key of ['name', 'productName', 'version', 'description']) {
   assert.equal(packageJson[key], sourcePackage[key]);
 }
 for (const file of ['main.js', 'src/identity.js', 'src/platform.js', 'src/runtime.js',
-  'src/window.js', 'src/shortcuts.js', 'src/preload.js', 'src/launcher/index.html',
+  'src/window.js', 'src/shortcuts.js', 'src/updater/index.js', 'src/updater/install.js', 'src/launcher/update-ui.js', 'src/preload.js', 'src/launcher/index.html',
   'src/launcher/app.js', 'src/launcher/styles.css', 'src/launcher/brand-mark.svg',
   'build/icon.png', 'LICENSE', 'THIRD_PARTY_NOTICES.md']) {
   assert(archivedFiles.has(`/${file}`), `${file} must be included in the package`);

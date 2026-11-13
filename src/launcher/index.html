@@ -17,6 +17,7 @@
     </p>
     <h1 class="visually-hidden">选择一个游戏</h1>
     <div class="topbar-actions">
+      <button id="updateButton" class="ghost-button" type="button">检查更新</button>
       <button id="settingsButton" class="ghost-button" type="button">快捷键设置</button>
       <button id="addButton" class="outline-button" type="button">添加游戏</button>
     </div>
@@ -140,7 +141,27 @@
     </form>
   </dialog>
 
+  <dialog id="updateDialog" class="update-dialog" aria-labelledby="updateTitle">
+    <div class="dialog-heading">
+      <h2 id="updateTitle">检查更新</h2>
+      <button id="updateClose" class="icon-button" type="button" aria-label="关闭更新窗口"></button>
+    </div>
+    <p id="updateVersion" class="update-version"></p>
+    <p id="updateStatus" role="status" aria-live="polite"></p>
+    <pre id="updateNotes" class="update-notes" hidden></pre>
+    <div id="updateProgressArea" hidden>
+      <progress id="updateProgress" max="1" value="0" aria-label="更新下载进度"></progress>
+      <p id="updateProgressText" class="update-progress-text"></p>
+    </div>
+    <p id="updateError" class="form-message error" role="alert"></p>
+    <div class="dialog-actions">
+      <button id="updateSkip" class="ghost-button" type="button" hidden>跳过此版本</button>
+      <button id="updateCancel" class="ghost-button" type="button" hidden>取消下载</button>
+      <button id="updatePrimary" class="primary-button" type="button">检查更新</button>
+    </div>
+  </dialog>
   <div id="toast" class="toast" role="status" hidden></div>
   <script src="app.js"></script>
+  <script src="update-ui.js"></script>
 </body>
 </html>
