@@ -110,5 +110,6 @@
   "homepage": "https://github.com/Tikzen/CloudBerth#readme",
   "bugs": {
     "url": "https://github.com/Tikzen/CloudBerth/issues"
-  }
+  },
+  "releaseTag": "v1.4.0"
 }

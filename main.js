@@ -42,7 +42,7 @@ function startApplication() {
 
     app.whenReady().then(async () => {
       await migrateLegacyCookies(app, session, migration);
-      app.setAboutPanelOptions({ applicationName: PRODUCT_NAME });
+      app.setAboutPanelOptions({ applicationName: PRODUCT_NAME, applicationVersion: require('./package.json').releaseTag || `v${app.getVersion()}` });
       const logger = createLogger(app.getPath('userData'));
       let loaded;
 

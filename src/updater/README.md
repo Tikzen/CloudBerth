@@ -12,6 +12,8 @@
 
 ## 1. 版本号与标签
 
+软件显示以 `package.json` 中的 `releaseTag` 为准，必须与将要公开的 Release 标签逐字一致（包括 `v` 前缀和 Windows 渠道后缀）。顶部、更新弹窗和 Mac“关于”窗口均使用它；发现新版本时显示服务器的真实 `tag_name`。安装成功前不会提前改变当前版本。
+
 应用的 `package.json`、`package-lock.json` 根版本与根包版本必须一致。Mac 包内的 `CFBundleShortVersionString` 也必须与 Release 的三段数字版本一致。
 
 推荐同一轮更新使用共同的数字版本，例如 `1.4.0`，分别创建：

@@ -1,6 +1,7 @@
 'use strict';
 
-const fs = require('node:fs/promises');
+// Bypass Electron's virtual ASAR filesystem when removing staged app bundles.
+const fs = (process.versions.electron ? require('original-fs') : require('node:fs')).promises;
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { Readable } = require('node:stream');
@@ -90,7 +91,7 @@ function createUpdateService({ app, logger, fetcher, onChange = () => {}, platfo
   prepare = prepareInstallation, install = launchInstaller }) {
   const directory = path.join(app.getPath('userData'), 'updates');
   const prefs = path.join(directory, 'preferences.json');
-  let state = { status: 'idle', currentVersion: app.getVersion(), release: null, received: 0, total: 0,
+  let state = { status: 'idle', currentVersion: app.getVersion(), currentTag: require('../../package.json').releaseTag || `v${app.getVersion()}`, release: null, received: 0, total: 0,
     progress: 0, error: '', trigger: 'automatic', skippedVersion: '' };
   let selected = null, prepared = null, job = null, controller = null, staging = null;
   let startupTimer, interval, disposed = false;

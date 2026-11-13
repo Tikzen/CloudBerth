@@ -18,11 +18,12 @@
   function render(next) {
     state = next;
     const available = Boolean(state.release);
+    find('appVersion').textContent = state.currentTag || (state.currentVersion ? `v${state.currentVersion}` : '');
     button.textContent = active() ? (state.status === 'downloading' ? `更新 ${Math.floor(state.progress * 100)}%` : '正在准备更新…')
       : state.status === 'ready' ? '重启更新' : available ? '发现新版本' : '检查更新';
     button.classList.toggle('has-update', available);
     find('updateTitle').textContent = state.status === 'ready' ? '更新已准备完成' : available ? '发现新版本' : '检查更新';
-    find('updateVersion').textContent = `当前版本 ${state.currentVersion || '—'}${available ? ` → ${state.release.version}${state.release.prerelease ? '（测试版）' : ''}` : ''}`;
+    find('updateVersion').textContent = `当前版本 ${state.currentTag || state.currentVersion || '—'}${available ? ` → ${state.release.tag || state.release.version}${state.release.prerelease ? '（测试版）' : ''}` : ''}`;
     const descriptions = {
       idle: '点击检查是否有适合这台电脑的新版本。', checking: '正在连接 GitHub 检查更新…',
       available: '可直接在软件中下载更新，下载完成后重启安装。',
