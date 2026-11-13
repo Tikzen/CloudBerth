@@ -27,9 +27,9 @@ git push origin main
 
 macOS 当前使用临时签名，尚未配置 Developer ID 公证；正式签名凭据保存在发布环境，不进入 Git。
 
-## 1.3.0
+## 1.4.0
 
-当前 Apple Silicon 发行附件：CloudBerth-1.3.0-mac-arm64.dmg、CloudBerth-1.3.0-mac-arm64.zip、SHA256SUMS.txt。
+当前 Apple Silicon 发行附件：CloudBerth-1.4.0-mac-arm64.dmg、CloudBerth-1.4.0-mac-arm64.zip、SHA256SUMS.txt。
 来源与素材说明见 THIRD_PARTY_NOTICES.md。
 
 ## 应用内更新的 Release 契约（1.4.0 起）

@@ -42,12 +42,12 @@ CloudBerth 基于 Electron，不提供云游戏算力或账号服务。游戏兼
 
 | 平台 | 版本与状态 | 下载 |
 | --- | --- | --- |
-| macOS 13+ · Apple Silicon（M 系列） | **1.3.0 稳定版** | [DMG / ZIP](https://github.com/Tikzen/CloudBerth/releases/tag/v1.3.0) |
-| Windows x64 | **1.3.1 测试版 · Pre-release** | [便携 EXE](https://github.com/Tikzen/CloudBerth/releases/tag/v1.3.1-windows-test) |
+| macOS 13+ · Apple Silicon（M 系列） | **1.4.0 稳定版** | [DMG / ZIP](https://github.com/Tikzen/CloudBerth/releases/tag/v1.4.0) |
+| Windows x64 | **1.4.0 测试版 · Pre-release** | [便携 EXE](https://github.com/Tikzen/CloudBerth/releases/tag/v1.4.0-windows-test) |
 
 Mac 打开 DMG，将 **CloudBerth.app** 拖入“应用程序”后启动。当前 Mac 发行包使用本机临时签名，尚未完成 Apple Developer ID 签名与公证。
 
-Windows 下载 `CloudBerth-1.3.1-x64.exe`，在 Windows 电脑上双击运行，无需安装。该版本为**未签名的预发布测试版**：已通过 Windows 环境中的启动器、窗口管理、Alt 快捷键、全屏、打包完整性与数据迁移自动化检查；真实云游戏串流、GPU、手柄及各平台登录兼容性仍需实机验证。
+Windows 下载 `CloudBerth-1.4.0-x64.exe`，在 Windows 电脑上双击运行，无需安装。该版本为**未签名的预发布测试版**：已通过 Windows 环境中的启动器、窗口管理、Alt 快捷键、全屏、打包完整性与数据迁移自动化检查；真实云游戏串流、GPU、手柄及各平台登录兼容性仍需实机验证。
 
 两个版本分别提供 SHA-256 校验文件。Mac 稳定版仍保留为 Latest；Windows 测试版单独标记为 Pre-release。Intel Mac 和 Linux 暂无经过验证的发行包。
 
@@ -73,7 +73,7 @@ Windows 下载 `CloudBerth-1.3.1-x64.exe`，在 Windows 电脑上双击运行，
 | 返回游戏库 | ⇧⌘H | Alt + Shift + H |
 | 退出应用 | ⌘Q | Alt + Q |
 
-Windows 测试版使用 Alt 组合键，不要求 Command 键。[下载 Windows 测试版](https://github.com/Tikzen/CloudBerth/releases/tag/v1.3.1-windows-test)。
+Windows 测试版使用 Alt 组合键，不要求 Command 键。[下载 Windows 测试版](https://github.com/Tikzen/CloudBerth/releases/tag/v1.4.0-windows-test)。
 
 保存后，主页底部提示与 macOS 原生菜单里的组合键立即同步。三个组合不能重复；ESC 留给游戏，F12 留给调试工具。
 
