@@ -115,6 +115,7 @@ const packageJson = JSON.parse(
   fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')
 );
 assert.equal(packageJson.name, 'cloudberth');
+assert.equal(require('../src/updater').compareVersions(packageJson.releaseTag, packageJson.version), 0, 'Release tag must match the packaged version');
 assert.equal(packageJson.productName, 'CloudBerth');
 assert.equal(packageJson.build.productName, 'CloudBerth');
 assert.equal(packageJson.build.appId, 'com.cloudberth.app');
