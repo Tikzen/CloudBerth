@@ -12,6 +12,7 @@ const electronCommands = {
   manual: ['.', '--manual-test'],
   close: ['tools/close-smoke.js'],
   launcher: ['tools/launcher-smoke.js'],
+  updates: ['tools/update-ui-smoke.js'],
   runtime: ['tools/runtime-smoke.js'],
   shortcuts: ['tools/shortcut-smoke.js'],
   screenshots: ['tools/capture-readme.js'],

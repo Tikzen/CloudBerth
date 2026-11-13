@@ -24,6 +24,10 @@ jobs:
         run: npm ci
       - name: Check source and platform defaults
         run: npm run check
+      - name: Test in-app updater and progress dialog
+        run: |
+          npm run test:updates
+          npm run test:updates-ui
       - name: Test launcher and remote bridge isolation
         run: npm run test:launcher
       - name: Test explicit window close

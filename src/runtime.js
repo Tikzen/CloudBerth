@@ -147,7 +147,7 @@ function createRuntime({ app, config, persistentSession, logger, library, icons,
   return runtime;
 }
 
-function installLauncherHandlers({ ipcMain, runtime, icons, app, logger }) {
+function installLauncherHandlers({ ipcMain, runtime, icons, app, logger, updates }) {
   const isTrustedSender = (event) => {
     const frame = event.senderFrame;
     if (!frame || frame !== event.sender.mainFrame || event.sender !== runtime.launcher.webContents) return false;
@@ -176,6 +176,17 @@ function installLauncherHandlers({ ipcMain, runtime, icons, app, logger }) {
     if (runtime.launcher.isDestroyed()) return false;
     return runtime.launcher.setShortcutCapture(Boolean(active), action);
   }));
+  if (updates) {
+    ipcMain.handle('updates:get-state', trusted(updates.getState));
+    ipcMain.handle('updates:check', trusted(() => updates.check('manual')));
+    ipcMain.handle('updates:download', trusted(updates.download));
+    ipcMain.handle('updates:cancel', trusted(updates.cancel));
+    ipcMain.handle('updates:skip', trusted(updates.skip));
+    ipcMain.handle('updates:restart', trusted(() => {
+      if (runtime.getState().runningGameIds.length) throw new Error('请先结束正在运行的游戏，再重启更新。');
+      return updates.restart();
+    }));
+  }
   ipcMain.handle('launcher:quit', trusted(() => { app.quit(); return true; }));
 }
 

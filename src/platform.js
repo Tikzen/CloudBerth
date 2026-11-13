@@ -14,6 +14,7 @@ function platformDefaults(defaults, platform = process.platform) {
 
 function installApplicationMenu({
   Menu, app,
+  onCheckUpdates = () => {},
   getWindow = () => null,
   config = { startMode: 'fullscreen' },
   shortcuts = platformDefaults({}, 'darwin').shortcuts,
@@ -38,6 +39,7 @@ function installApplicationMenu({
       label: PRODUCT_NAME,
       submenu: [
         { role: 'about', label: `关于 ${PRODUCT_NAME}` },
+        { id: 'shell-check-updates', label: '检查更新…', click: onCheckUpdates },
         { type: 'separator' },
         { id: 'shell-quit', label: `退出 ${PRODUCT_NAME}`,
           accelerator: accelerator(shortcuts.quit), click: () => app.quit() }
