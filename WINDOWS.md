@@ -5,7 +5,7 @@ Mac 稳定版源码保留在 macos 分支。两个开发目录分别维护依赖
 
 ## 下载测试版
 
-[CloudBerth 1.3.1 Windows 测试版（Pre-release）](https://github.com/Tikzen/CloudBerth/releases/tag/v1.3.1-windows-test) 提供便携 EXE 和 SHA256SUMS-windows.txt。
+[CloudBerth 1.4.0 Windows 测试版（Pre-release）](https://github.com/Tikzen/CloudBerth/releases/tag/v1.4.0-windows-test) 提供便携 EXE 和 SHA256SUMS-windows.txt。
 下载后在 Windows 电脑上双击运行，无需安装。该版本未签名；真实云游戏串流、GPU、手柄及登录兼容性仍需实机验证。
 
 已通过 [Windows 原生构建与检查](https://github.com/Tikzen/CloudBerth/actions/runs/42341054440)，包括 Alt 快捷键、全屏、窗口管理、包内文件检查和加密 Cookie / 网页存储迁移。
