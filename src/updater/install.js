@@ -1,6 +1,7 @@
 'use strict';
 
-const fs = require('node:fs/promises');
+// Bypass Electron's virtual ASAR filesystem when removing staged app bundles.
+const fs = (process.versions.electron ? require('original-fs') : require('node:fs')).promises;
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { promisify } = require('node:util');
