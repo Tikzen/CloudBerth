@@ -23,6 +23,12 @@ const projectRoot = path.resolve(__dirname, '..');
 const sourceFiles = [
   'main.js',
   'src/config.js',
+  'src/updater/index.js',
+  'src/updater/install.js',
+  'src/launcher/update-ui.js',
+  'tools/updates-check.js',
+  'tools/update-smoke.js',
+  'tools/update-ui-smoke.js',
   'src/library.js',
   'src/logger.js',
   'src/permissions.js',
@@ -159,3 +165,5 @@ console.log(`PASS: ${sourceFiles.length} JavaScript files passed syntax checks.`
 console.log('PASS: configuration validation and permission host matching.');
 console.log('PASS: macOS defaults, persisted config, Mac and Windows build targets.');
 require('./shortcuts-check');
+
+require('./updates-check');

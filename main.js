@@ -1,11 +1,12 @@
 'use strict';
 
-const { app, dialog, ipcMain, Menu, session } = require('electron');
+const { app, dialog, ipcMain, Menu, session, net } = require('electron');
 const { ConfigError, loadConfig } = require('./src/config');
 const { createLibraryStore } = require('./src/library');
 const { createLogger } = require('./src/logger');
 const { configurePermissions } = require('./src/permissions');
 const { createRuntime, installLauncherHandlers } = require('./src/runtime');
+const { createUpdateService } = require('./src/updater');
 const { createIconService } = require('./src/icons');
 const { installApplicationMenu } = require('./src/platform');
 const { APP_ID, PRODUCT_NAME, SESSION_PARTITION, configureIdentity,
@@ -82,15 +83,24 @@ function startApplication() {
 
       const icons = createIconService({ logger });
       let runtime;
+      let updates;
       const refreshMenu = () => installApplicationMenu({
         Menu, app, config, logger,
         getWindow: () => runtime.getActionWindow(),
-        shortcuts: library.getShortcuts()
+        shortcuts: library.getShortcuts(),
+        onCheckUpdates: () => { runtime.showLauncher(); runtime.launcher.webContents.send('updates:show'); }
       });
       runtime = createRuntime({ app, config, persistentSession, logger, library, icons,
         onShortcutsChanged: refreshMenu });
       mainWindow = runtime.launcher;
-      installLauncherHandlers({ ipcMain, runtime, icons, app, logger });
+      updates = createUpdateService({ app, logger, fetcher: (url, options) => net.fetch(url, options),
+        onChange: (state) => {
+          if (!runtime.launcher.isDestroyed()) runtime.launcher.webContents.send('updates:changed', state);
+        }
+      });
+      installLauncherHandlers({ ipcMain, runtime, icons, app, logger, updates });
+      updates.start();
+      app.once('before-quit', () => updates.dispose());
       refreshMenu();
       void runtime.refreshIcons();
       mainWindow.on('closed', () => {

@@ -28,6 +28,26 @@ if (location.protocol === 'file:' &&
       ipcRenderer.on('launcher:state-changed', listener);
       return () => ipcRenderer.removeListener('launcher:state-changed', listener);
     },
+    updates: Object.freeze({
+      getState: () => ipcRenderer.invoke('updates:get-state'),
+      check: () => ipcRenderer.invoke('updates:check'),
+      download: () => ipcRenderer.invoke('updates:download'),
+      cancel: () => ipcRenderer.invoke('updates:cancel'),
+      skip: () => ipcRenderer.invoke('updates:skip'),
+      restart: () => ipcRenderer.invoke('updates:restart'),
+      onChange: (callback) => {
+        if (typeof callback !== 'function') throw new TypeError('Expected a callback.');
+        const listener = (_event, state) => callback(state);
+        ipcRenderer.on('updates:changed', listener);
+        return () => ipcRenderer.removeListener('updates:changed', listener);
+      },
+      onShow: (callback) => {
+        if (typeof callback !== 'function') throw new TypeError('Expected a callback.');
+        const listener = () => callback();
+        ipcRenderer.on('updates:show', listener);
+        return () => ipcRenderer.removeListener('updates:show', listener);
+      }
+    }),
     quit: () => ipcRenderer.invoke('launcher:quit')
   }));
 }
