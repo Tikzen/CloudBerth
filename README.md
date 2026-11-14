@@ -1,4 +1,4 @@
-<h1 align="center">CloudBerth</h1>
+<img width="2818" height="1440" alt="image" src="https://github.com/user-attachments/assets/821a7907-95c4-43e4-96fd-16f0fa468904" /><h1 align="center">CloudBerth</h1>
 
 <p align="center">一个专为网页云游戏打造的沉浸式体验空间</p>
 
@@ -14,6 +14,7 @@
   <a href="#开发与构建">开发与构建</a> ·
   <a href="https://github.com/Tikzen/CloudBerth/issues">反馈问题</a>
 </p>
+演示视频：tps://www.bilibili.com/video/BV1Hc4J6tEis
 
 ![CloudBerth 启动器](docs/images/launcher.png)
 
