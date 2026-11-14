@@ -1,3 +1,13 @@
+<p align="center"><strong>在这里请作者喝一瓶水</strong></p>
+
+<p align="center">
+  <a href="docs/images/afdian-tikzen.jpeg">
+    <img src="docs/images/afdian-tikzen.jpeg" alt="扫码通过爱发电支持作者 Tikzen" width="280">
+  </a>
+</p>
+
+---
+
 > **Mac 稳定分支**：本目录保留 Mac 1.4.0 稳定版源码。Windows 测试版使用独立的 windows 分支与开发目录。
 
 <h1 align="center">CloudBerth</h1>
