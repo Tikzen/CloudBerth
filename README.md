@@ -14,7 +14,8 @@
   <a href="#开发与构建">开发与构建</a> ·
   <a href="https://github.com/Tikzen/CloudBerth/issues">反馈问题</a>
 </p>
-演示视频：tps://www.bilibili.com/video/BV1Hc4J6tEis
+
+演示视频：www.bilibili.com/video/BV1Hc4J6tEis
 
 ![CloudBerth 启动器](docs/images/launcher.png)
 
