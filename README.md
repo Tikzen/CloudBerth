@@ -1,3 +1,13 @@
+<p align="center"><strong>在这里请作者喝一瓶水</strong></p>
+
+<p align="center">
+  <a href="docs/images/afdian-tikzen.jpeg">
+    <img src="docs/images/afdian-tikzen.jpeg" alt="扫码通过爱发电支持作者 Tikzen" width="280">
+  </a>
+</p>
+
+---
+
 > **Windows 测试分支**：本目录维护 Windows x64 测试版，默认使用 Alt 组合键。[下载 1.4.0 Windows 测试版](https://github.com/Tikzen/CloudBerth/releases/tag/v1.4.0-windows-test) · [构建说明](WINDOWS.md)。Mac 源码独立维护在 macos 分支。
 
 <h1 align="center">CloudBerth</h1>
