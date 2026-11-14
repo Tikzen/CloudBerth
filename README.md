@@ -1,3 +1,13 @@
+<p align="center"><strong>在这里请作者喝一瓶水</strong></p>
+
+<p align="center">
+  <a href="docs/images/afdian-tikzen.jpeg">
+    <img src="docs/images/afdian-tikzen.jpeg" alt="扫码通过爱发电支持作者 Tikzen" width="280">
+  </a>
+</p>
+
+---
+
 
 
 <p align="center">一个专为网页云游戏打造的沉浸式体验空间</p>
