@@ -18,8 +18,14 @@ const gameCount = document.querySelector('#gameCount');
 const gameDialog = document.querySelector('#gameDialog');
 const gameForm = document.querySelector('#gameForm');
 const deleteDialog = document.querySelector('#deleteDialog');
+const clearDataDialog = document.querySelector('#clearDataDialog');
 const shortcutForm = document.querySelector('#shortcutForm');
 const shortcutMessage = document.querySelector('#shortcutMessage');
+const derivedGamesList = document.querySelector('#derivedGamesList');
+const derivedMessage = document.querySelector('#derivedMessage');
+const cacheMessage = document.querySelector('#cacheMessage');
+const clearCacheButton = document.querySelector('#clearCacheButton');
+const clearAllDataButton = document.querySelector('#clearAllDataButton');
 const toast = document.querySelector('#toast');
 const ambient = document.querySelector('#ambient');
 let state = { games: [], shortcuts: {} };
@@ -42,6 +48,7 @@ function applyState(next) {
   state = { ...next, runningGameIds: next.runningGameIds || [] };
   renderGames();
   renderShortcutHint();
+  renderDerivedGames();
 }
 
 function avatarFor(name, icon, className = 'game-monogram') {
@@ -358,12 +365,124 @@ async function saveGames(games) {
   applyState(await api.saveGames(games));
 }
 
+function switchSettingsTab(tab = 'shortcuts') {
+  if (tab !== 'shortcuts') void stopShortcutRecording();
+  for (const button of document.querySelectorAll('[data-settings-tab]')) {
+    const active = button.dataset.settingsTab === tab;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-selected', String(active));
+  }
+  for (const panel of document.querySelectorAll('[data-settings-panel]')) {
+    panel.hidden = panel.dataset.settingsPanel !== tab;
+  }
+}
+
+function setStatusMessage(element, text, isError = false) {
+  if (!element) return;
+  element.textContent = text;
+  element.classList.toggle('error', Boolean(isError));
+}
+
+function renderDerivedGames() {
+  if (!derivedGamesList) return;
+  if (!state.games.length) {
+    const empty = document.createElement('p');
+    empty.className = 'derived-empty';
+    empty.textContent = '还没有游戏入口，请先在游戏库添加游戏。';
+    derivedGamesList.replaceChildren(empty);
+    return;
+  }
+  const cards = state.games.map((game) => {
+    const card = document.createElement('div');
+    card.className = 'derived-game-card';
+    card.dataset.gameId = game.id;
+
+    const head = document.createElement('div');
+    head.className = 'derived-game-head';
+    const name = document.createElement('strong');
+    name.textContent = game.name;
+    const primary = document.createElement('span');
+    primary.className = 'derived-game-primary';
+    try { primary.textContent = `主域名：${new URL(game.url).hostname || '本地测试页'}`; }
+    catch { primary.textContent = game.url; }
+    head.append(name, primary);
+
+    const chips = document.createElement('div');
+    chips.className = 'derived-chips';
+    const hosts = Array.isArray(game.derivedHosts) ? game.derivedHosts : [];
+    if (!hosts.length) {
+      const none = document.createElement('span');
+      none.className = 'derived-none';
+      none.textContent = '暂无衍生网页';
+      chips.append(none);
+    } else {
+      for (const host of hosts) {
+        const chip = document.createElement('span');
+        chip.className = 'derived-chip';
+        const label = document.createElement('span');
+        label.textContent = host;
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.textContent = '×';
+        removeBtn.title = `删除 ${host}`;
+        removeBtn.setAttribute('aria-label', `删除 ${game.name} 的衍生网页 ${host}`);
+        removeBtn.addEventListener('click', async () => {
+          removeBtn.disabled = true;
+          try {
+            applyState(await api.removeDerivedHost(game.id, host));
+            setStatusMessage(derivedMessage, `已从“${game.name}”移除衍生网页：${host}`);
+          } catch (error) {
+            removeBtn.disabled = false;
+            setStatusMessage(derivedMessage, error.message, true);
+          }
+        });
+        chip.append(label, removeBtn);
+        chips.append(chip);
+      }
+    }
+
+    const addForm = document.createElement('form');
+    addForm.className = 'derived-add-form';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.maxLength = 2048;
+    input.placeholder = '输入衍生域名或 HTTPS 网址（如 stream.example.com）';
+    input.setAttribute('aria-label', `为 ${game.name} 添加衍生网页`);
+    const submit = document.createElement('button');
+    submit.type = 'submit';
+    submit.className = 'outline-button';
+    submit.textContent = '添加';
+    addForm.append(input, submit);
+    addForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      submit.disabled = true;
+      try {
+        applyState(await api.addDerivedHost(game.id, input.value));
+        input.value = '';
+        setStatusMessage(derivedMessage, `已为“${game.name}”添加衍生网页。`);
+      } catch (error) {
+        setStatusMessage(derivedMessage, error.message, true);
+      } finally {
+        submit.disabled = false;
+      }
+    });
+
+    card.append(head, chips, addForm);
+    return card;
+  });
+  derivedGamesList.replaceChildren(...cards);
+}
+
 function showSettings() {
   for (const input of shortcutForm.querySelectorAll('[data-shortcut]')) {
     input.value = displayShortcut(state.shortcuts[input.dataset.shortcut]);
     renderKeycaps(input);
   }
-  shortcutMessage.textContent = '';
+  setStatusMessage(shortcutMessage, '');
+  setStatusMessage(derivedMessage, '');
+  setStatusMessage(cacheMessage, '');
+  renderDerivedGames();
+  switchSettingsTab('shortcuts');
   gameSection.hidden = true;
   settingsSection.hidden = false;
 }
@@ -419,11 +538,13 @@ api.onShortcutCaptured((result) => {
 gameForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const id = document.querySelector('#gameId').value;
+  const existing = id ? state.games.find((item) => item.id === id) : null;
   const game = {
     ...(id ? { id } : {}),
     name: document.querySelector('#gameName').value,
     url: document.querySelector('#gameUrl').value,
-    icon: draftIcon, siteIcon: draftSiteIcon
+    icon: draftIcon, siteIcon: draftSiteIcon,
+    ...(existing?.derivedHosts?.length ? { derivedHosts: existing.derivedHosts } : {})
   };
   const games = id
     ? state.games.map((item) => item.id === id ? game : item)
@@ -501,6 +622,42 @@ document.querySelector('#settingsCloseButton').addEventListener('click', () => {
 document.querySelector('#dialogCloseButton').addEventListener('click', () => gameDialog.close());
 document.querySelector('#cancelButton').addEventListener('click', () => gameDialog.close());
 document.querySelector('#deleteCancelButton').addEventListener('click', () => deleteDialog.close());
+for (const button of document.querySelectorAll('[data-settings-tab]')) {
+  button.addEventListener('click', () => switchSettingsTab(button.dataset.settingsTab));
+}
+
+async function runClearCache(mode) {
+  if (clearCacheButton) clearCacheButton.disabled = true;
+  if (clearAllDataButton) clearAllDataButton.disabled = true;
+  setStatusMessage(cacheMessage, mode === 'all' ? '正在清除登录与网站数据…' : '正在清除网页缓存…');
+  try {
+    await api.clearCache(mode);
+    const done = mode === 'all'
+      ? '已清除所有云游戏登录与网站数据，游戏列表与快捷键已保留。'
+      : '已清除云游戏网页缓存，登录状态与游戏列表已保留。';
+    setStatusMessage(cacheMessage, done);
+    showToast(mode === 'all' ? '已清除登录与网站数据' : '已清除网页缓存');
+  } catch (error) {
+    setStatusMessage(cacheMessage, error.message, true);
+  } finally {
+    if (clearCacheButton) clearCacheButton.disabled = false;
+    if (clearAllDataButton) clearAllDataButton.disabled = false;
+  }
+}
+
+clearCacheButton?.addEventListener('click', () => { void runClearCache('cache'); });
+clearAllDataButton?.addEventListener('click', () => {
+  if (state.runningGameIds?.length) {
+    setStatusMessage(cacheMessage, '请先结束正在运行的游戏，再清除登录与网站数据。', true);
+    return;
+  }
+  clearDataDialog?.showModal();
+});
+document.querySelector('#clearDataCancelButton')?.addEventListener('click', () => clearDataDialog.close());
+document.querySelector('#clearDataConfirmButton')?.addEventListener('click', async () => {
+  clearDataDialog.close();
+  await runClearCache('all');
+});
 
 document.addEventListener('click', (event) => {
   if (!event.target.closest('.run-controls')) closeRunMenus();

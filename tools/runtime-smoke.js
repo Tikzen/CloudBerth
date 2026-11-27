@@ -123,6 +123,27 @@ app.whenReady().then(async () => {
     return rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight;
   })()`);
   assert(settingsFits, 'Settings save button must fit at 800x450');
+  // Verify derived webpage management and cache clearing inside Settings.
+  await js('document.querySelector("[data-settings-tab=derived]").click()');
+  await until(async () => await js('!document.querySelector("#settingsTabDerived").hidden'), 'derived tab visible');
+  await js(`(() => {
+    const card = document.querySelector('.derived-game-card[data-game-id="first"]');
+    card.querySelector('input').value = 'https://stream.example.com/room';
+    card.querySelector('form').requestSubmit();
+  })()`);
+  await until(() => library.getDerivedHosts('first').includes('stream.example.com'), 'derived host added via Settings');
+  await until(async () => await js('document.querySelector(".derived-chip span")?.textContent === "stream.example.com"'), 'derived chip rendered');
+  await js('document.querySelector(".derived-chip button").click()');
+  await until(() => library.getDerivedHosts('first').length === 0, 'derived host removed via Settings');
+  await js('document.querySelector("[data-settings-tab=cache]").click()');
+  await until(async () => await js('!document.querySelector("#settingsTabCache").hidden'), 'cache tab visible');
+  await js('document.querySelector("#clearCacheButton").click()');
+  await until(async () => await js('document.querySelector("#cacheMessage").textContent.includes("已清除云游戏网页缓存")'), 'clear cache succeeds');
+  await js('document.querySelector("#clearAllDataButton").click()');
+  await until(async () => await js('document.querySelector("#clearDataDialog").open'), 'clear all confirmation opens');
+  await js('document.querySelector("#clearDataConfirmButton").click()');
+  await until(async () => await js('document.querySelector("#cacheMessage").textContent.includes("已清除所有云游戏登录与网站数据")'), 'clear all data succeeds');
+  assert.equal(library.getGames().length, 2, 'Clearing cache/site data must preserve the game library');
   await js('document.querySelector("#settingsCloseButton").click(); document.querySelector("#addButton").click()');
   await capture('launcher-entry-small.png');
   assert.equal(await js('document.querySelector("#gameDialog").open'), true);

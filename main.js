@@ -4,7 +4,7 @@ const { app, dialog, ipcMain, Menu, session, net } = require('electron');
 const { ConfigError, loadConfig } = require('./src/config');
 const { createLibraryStore } = require('./src/library');
 const { createLogger } = require('./src/logger');
-const { configurePermissions } = require('./src/permissions');
+const { configurePermissions, createDerivedHostPrompt } = require('./src/permissions');
 const { createRuntime, installLauncherHandlers } = require('./src/runtime');
 const { createUpdateService } = require('./src/updater');
 const { createIconService } = require('./src/icons');
@@ -77,13 +77,16 @@ function startApplication() {
       const persistentSession = session.fromPartition(SESSION_PARTITION, {
         cache: true
       });
-      configurePermissions(persistentSession, config, logger, {
-        getGameUrls: () => library.getGames().map((game) => game.url)
-      });
-
       const icons = createIconService({ logger });
       let runtime;
       let updates;
+      configurePermissions(persistentSession, config, logger, {
+        getGameUrls: () => library.getGames().map((game) => game.url),
+        getDerivedHosts: (gameId) => library.getDerivedHosts(gameId),
+        getGameForWebContents: (webContents) => runtime?.getGameForWebContents(webContents) || null,
+        promptDerivedHost: createDerivedHostPrompt(dialog),
+        onApproveDerivedHost: (gameId, host) => runtime?.addDerivedHost(gameId, host, { allowExisting: true })
+      });
       const refreshMenu = () => installApplicationMenu({
         Menu, app, config, logger,
         getWindow: () => runtime.getActionWindow(),

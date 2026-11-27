@@ -3,7 +3,7 @@
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { BrowserWindow } = require('electron');
-const { createMainWindow, createGameWindow } = require('./window');
+const { createMainWindow, createGameWindow, isSameLocalFileUrl } = require('./window');
 const { setDisplayMode } = require('./shortcuts');
 const { platformDefaults } = require('./platform');
 const { SHORTCUT_ACTIONS } = require('./library');
@@ -72,9 +72,17 @@ function createRuntime({ app, config, persistentSession, logger, library, icons,
 
   const runtime = {
     launcher,
+    launcherPath,
     launcherUrl: pathToFileURL(launcherPath).href,
     getState: snapshot,
     getGameWindow: (id) => running.get(id) || null,
+    getGameForWebContents(webContents) {
+      if (!webContents) return null;
+      const win = BrowserWindow.fromWebContents(webContents);
+      if (!win || win.isDestroyed() || !win.gameId) return null;
+      const game = library.getGames().find((item) => item.id === win.gameId);
+      return { id: win.gameId, name: game?.name || win.getTitle() || '游戏', window: win };
+    },
     getActionWindow() {
       const focused = BrowserWindow.getFocusedWindow();
       if (focused && !focused.isDestroyed()) return focused.gameWindow || focused;
@@ -142,6 +150,39 @@ function createRuntime({ app, config, persistentSession, logger, library, icons,
       onShortcutsChanged();
       notify();
       return snapshot();
+    },
+    addDerivedHost(gameId, host, options) {
+      library.addDerivedHost(gameId, host, options);
+      notify();
+      return snapshot();
+    },
+    removeDerivedHost(gameId, host) {
+      library.removeDerivedHost(gameId, host);
+      notify();
+      return snapshot();
+    },
+    async clearCache(mode = 'cache') {
+      if (mode !== 'cache' && mode !== 'all') throw new Error('无效的清理模式。');
+      if (running.size > 0) {
+        throw new Error(mode === 'all'
+          ? '请先结束正在运行的游戏，再清除登录与网站数据。'
+          : '请先结束正在运行的游戏，再清除网页缓存。');
+      }
+      await persistentSession.clearCache();
+      await persistentSession.clearCodeCaches({});
+      if (mode === 'all') {
+        await persistentSession.clearStorageData();
+        if (typeof persistentSession.clearAuthCache === 'function') {
+          await persistentSession.clearAuthCache();
+        }
+      } else {
+        await persistentSession.clearStorageData({
+          storages: ['shadercache', 'cachestorage', 'serviceworkers']
+        });
+      }
+      if (icons?.clearCache) icons.clearCache();
+      logger.info('Cleared game session cache', { mode });
+      return { mode, clearedAt: Date.now() };
     }
   };
   return runtime;
@@ -151,11 +192,18 @@ function installLauncherHandlers({ ipcMain, runtime, icons, app, logger, updates
   const isTrustedSender = (event) => {
     const frame = event.senderFrame;
     if (!frame || frame !== event.sender.mainFrame || event.sender !== runtime.launcher.webContents) return false;
-    return frame.url.split('#')[0] === runtime.launcherUrl;
+    return isSameLocalFileUrl(frame.url, runtime.launcherPath);
   };
   const trusted = (handler) => async (event, ...args) => {
     if (!isTrustedSender(event)) {
-      logger.warn('Rejected launcher IPC from untrusted page');
+      let protocol = 'invalid';
+      try { protocol = new URL(event.senderFrame?.url || '').protocol; } catch { /* ignore */ }
+      logger.warn('Rejected launcher IPC from untrusted page', {
+        hasFrame: Boolean(event.senderFrame),
+        sameWindow: event.sender === runtime.launcher.webContents,
+        sameMainFrame: Boolean(event.senderFrame && event.senderFrame === event.sender.mainFrame),
+        protocol
+      });
       throw new Error('此操作只允许从 CloudBerth 主页执行。');
     }
     return handler(...args);
@@ -163,6 +211,9 @@ function installLauncherHandlers({ ipcMain, runtime, icons, app, logger, updates
   ipcMain.handle('launcher:get-state', trusted(runtime.getState));
   ipcMain.handle('launcher:save-games', trusted(runtime.saveGames));
   ipcMain.handle('launcher:save-shortcuts', trusted(runtime.saveShortcuts));
+  ipcMain.handle('launcher:add-derived-host', trusted(runtime.addDerivedHost));
+  ipcMain.handle('launcher:remove-derived-host', trusted(runtime.removeDerivedHost));
+  ipcMain.handle('launcher:clear-cache', trusted(runtime.clearCache));
   ipcMain.handle('launcher:launch-game', trusted(runtime.launchGame));
   ipcMain.handle('launcher:stop-game', trusted(runtime.stopGame));
   ipcMain.handle('launcher:choose-avatar', trusted(() => icons.chooseAvatar(runtime.launcher)));

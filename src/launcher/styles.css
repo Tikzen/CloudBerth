@@ -831,19 +831,208 @@ body:has(#gameSection[hidden]) .ambient .game-light::before { opacity: .6; }
 .section-heading {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 14px;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.settings-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .section-heading h2 {
   font-family: var(--font-title);
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 600;
   letter-spacing: .03em;
 }
 
 .section-heading p { margin-top: 8px; color: var(--muted); }
+
+.settings-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(25, 21, 56, .52);
+}
+
+.settings-tab {
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color .16s, color .16s;
+}
+
+.settings-tab:hover { color: var(--screen); }
+
+.settings-tab.is-active {
+  color: var(--base);
+  background: linear-gradient(180deg, var(--screen-bright), #dcd8ee);
+}
+
+.settings-desc {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.derived-games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: min(360px, 48vh);
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-top: 8px;
+}
+
+.derived-empty {
+  padding: 20px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+}
+
+.derived-game-card {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(25, 21, 56, .42);
+}
+
+.derived-game-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.derived-game-head strong {
+  font-size: 15px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.derived-game-primary {
+  color: var(--muted);
+  font-size: 12px;
+  flex: none;
+}
+
+.derived-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.derived-none {
+  color: rgba(185, 179, 217, .72);
+  font-size: 12px;
+}
+
+.derived-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 6px 4px 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(58, 50, 124, .55);
+  color: var(--screen);
+  font-size: 12px;
+}
+
+.derived-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.derived-chip button {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--muted);
+  background: transparent;
+  font-size: 15px;
+  line-height: 1;
+  display: inline-grid;
+  place-items: center;
+}
+
+.derived-chip button:hover {
+  color: var(--danger);
+  background: rgba(241, 156, 143, .16);
+}
+
+.derived-add-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.derived-add-form input {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  font-size: 13px;
+}
+
+.derived-add-form button {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.cache-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.cache-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(25, 21, 56, .42);
+}
+
+.cache-card strong { display: block; font-size: 15px; font-weight: 600; }
+.cache-card small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.cache-card button { flex: none; }
+
+#derivedMessage:not(:empty), #cacheMessage:not(:empty) {
+  display: block;
+  margin-top: 10px;
+}
 
 .shortcut-form label {
   display: grid;
@@ -1086,8 +1275,11 @@ dialog::backdrop { background: rgba(25, 21, 56, .66); backdrop-filter: blur(10px
   .settings-panel { padding-top: calc(var(--bar-height) + 10px); padding-bottom: calc(var(--legend-height) + 10px); }
   .settings-sheet { padding: 14px 22px 12px; }
   .section-heading { margin-bottom: 6px; }
-  .section-heading h2 { font-size: 24px; }
-  .section-heading p { margin-top: 4px; }
+  .section-heading h2 { font-size: 22px; }
+  .settings-tab { height: 26px; padding: 0 10px; font-size: 12px; }
+  .settings-desc { margin-bottom: 6px; font-size: 12px; }
+  .derived-games-list { max-height: 190px; }
+  .cache-card { padding: 10px 14px; }
   .shortcut-form label { padding: 5px 0; }
   .shortcut-capture input { height: 38px; }
   .keycaps kbd { min-width: 26px; height: 26px; }
