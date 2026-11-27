@@ -49,12 +49,14 @@ if (isLegacyCookieWorker()) {
     if (stage === 'seed') {
       fs.writeFileSync(path.join(dataPath, 'launcher.json'), JSON.stringify({ games: [{ name: 'Fixture only' }], shortcuts: { quit: 'Meta+Q' } }));
       fs.writeFileSync(path.join(dataPath, 'config.json'), JSON.stringify({ startMode: 'windowed' }));
+      fs.writeFileSync(path.join(dataPath, 'lockfile'), 'Synthetic legacy lock: must not be copied');
       await ses.cookies.set({ url: 'https://migration.example.test/', name: 'test-login', value: 'synthetic-cookie-only', secure: true, httpOnly: true,
         sameSite: 'no_restriction', expirationDate: Date.now() / 1000 + 3600 });
       await window.webContents.executeJavaScript('localStorage.setItem("migration-test", "synthetic-storage-only")');
     } else {
       assert.equal(JSON.parse(fs.readFileSync(path.join(dataPath, 'launcher.json'))).games[0].name, 'Fixture only');
       assert.equal(JSON.parse(fs.readFileSync(path.join(dataPath, 'config.json'))).startMode, 'windowed');
+      if (process.platform !== 'win32') assert(!fs.existsSync(path.join(dataPath, 'lockfile')));
       const cookies = await ses.cookies.get({ name: 'test-login' });
       assert.equal(cookies.length, 1);
       assert.equal(cookies[0].value, 'synthetic-cookie-only');

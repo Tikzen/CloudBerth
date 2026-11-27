@@ -19,7 +19,7 @@
     <h1 class="visually-hidden">选择一个游戏</h1>
     <div class="topbar-actions">
       <button id="updateButton" class="ghost-button" type="button">检查更新</button>
-      <button id="settingsButton" class="ghost-button" type="button">快捷键设置</button>
+      <button id="settingsButton" class="ghost-button" type="button">设置</button>
       <button id="addButton" class="outline-button" type="button">添加游戏</button>
     </div>
   </header>
@@ -40,52 +40,87 @@
     <section id="settingsSection" class="settings-panel" aria-labelledby="settingsTitle" hidden>
       <div class="settings-sheet">
       <div class="section-heading">
-        <div>
-          <h2 id="settingsTitle">快捷键设置</h2>
-          <p>双击快捷键开始录入；ESC 取消。修改或恢复默认后点击保存。</p>
+        <div class="settings-title-bar">
+          <h2 id="settingsTitle">设置</h2>
+          <div class="settings-tabs" role="tablist" aria-label="设置分类">
+            <button class="settings-tab is-active" type="button" role="tab" aria-selected="true" data-settings-tab="shortcuts">快捷键</button>
+            <button class="settings-tab" type="button" role="tab" aria-selected="false" data-settings-tab="derived">衍生网页</button>
+            <button class="settings-tab" type="button" role="tab" aria-selected="false" data-settings-tab="cache">缓存与数据</button>
+          </div>
         </div>
         <button id="settingsCloseButton" class="outline-button" type="button">返回游戏库</button>
       </div>
-      <form id="shortcutForm" class="shortcut-form">
-        <label>
-          <span><strong>切换全屏</strong><small>在窗口与全屏之间切换</small></span>
-          <span class="shortcut-controls">
-            <span class="shortcut-capture">
-              <input data-shortcut="toggleDisplay" readonly title="双击开始录入快捷键" aria-label="双击开始录入快捷键">
-              <span class="keycaps" aria-hidden="true"></span>
+
+      <div id="settingsTabShortcuts" class="settings-tab-panel" role="tabpanel" data-settings-panel="shortcuts">
+        <p class="settings-desc">双击快捷键开始录入；ESC 取消。修改或恢复默认后点击保存。</p>
+        <form id="shortcutForm" class="shortcut-form">
+          <label>
+            <span><strong>切换全屏</strong><small>在窗口与全屏之间切换</small></span>
+            <span class="shortcut-controls">
+              <span class="shortcut-capture">
+                <input data-shortcut="toggleDisplay" readonly title="双击开始录入快捷键" aria-label="双击开始录入快捷键">
+                <span class="keycaps" aria-hidden="true"></span>
+              </span>
+              <button class="ghost-button shortcut-reset" type="button" data-reset-shortcut="toggleDisplay">恢复默认</button>
             </span>
-            <button class="ghost-button shortcut-reset" type="button" data-reset-shortcut="toggleDisplay">恢复默认</button>
-          </span>
-        </label>
-        <label>
-          <span><strong>返回游戏库</strong><small>回到游戏列表，游戏窗口继续运行</small></span>
-          <span class="shortcut-controls">
-            <span class="shortcut-capture">
-              <input data-shortcut="home" readonly title="双击开始录入快捷键" aria-label="双击开始录入快捷键">
-              <span class="keycaps" aria-hidden="true"></span>
+          </label>
+          <label>
+            <span><strong>返回游戏库</strong><small>回到游戏列表，游戏窗口继续运行</small></span>
+            <span class="shortcut-controls">
+              <span class="shortcut-capture">
+                <input data-shortcut="home" readonly title="双击开始录入快捷键" aria-label="双击开始录入快捷键">
+                <span class="keycaps" aria-hidden="true"></span>
+              </span>
+              <button class="ghost-button shortcut-reset" type="button" data-reset-shortcut="home">恢复默认</button>
             </span>
-            <button class="ghost-button shortcut-reset" type="button" data-reset-shortcut="home">恢复默认</button>
-          </span>
-        </label>
-        <label>
-          <span><strong>退出应用</strong><small>即使网页尝试拦截关闭也能退出</small></span>
-          <span class="shortcut-controls">
-            <span class="shortcut-capture">
-              <input data-shortcut="quit" readonly title="双击开始录入快捷键" aria-label="双击开始录入快捷键">
-              <span class="keycaps" aria-hidden="true"></span>
+          </label>
+          <label>
+            <span><strong>退出应用</strong><small>即使网页尝试拦截关闭也能退出</small></span>
+            <span class="shortcut-controls">
+              <span class="shortcut-capture">
+                <input data-shortcut="quit" readonly title="双击开始录入快捷键" aria-label="双击开始录入快捷键">
+                <span class="keycaps" aria-hidden="true"></span>
+              </span>
+              <button class="ghost-button shortcut-reset" type="button" data-reset-shortcut="quit">恢复默认</button>
             </span>
-            <button class="ghost-button shortcut-reset" type="button" data-reset-shortcut="quit">恢复默认</button>
-          </span>
-        </label>
-        <div class="form-actions">
-          <span id="shortcutMessage" class="form-message" role="status"></span>
-          <button class="primary-button" type="submit">保存快捷键</button>
+          </label>
+          <div class="form-actions">
+            <span id="shortcutMessage" class="form-message" role="status"></span>
+            <button class="primary-button" type="submit">保存快捷键</button>
+          </div>
+        </form>
+        <div class="settings-notes">
+          <p data-platform="darwin">Mac 游戏中可将鼠标移到屏幕顶部，在“窗口”菜单中退出全屏或返回游戏库。</p>
+          <p data-platform="win32" hidden>Windows 游戏中可使用自定义快捷键切换全屏或返回游戏库。</p>
+          <p>独立游戏窗口，随时回到游戏库。入口与登录会话保存在本机。</p>
         </div>
-      </form>
-      <div class="settings-notes">
-        <p data-platform="darwin">Mac 游戏中可将鼠标移到屏幕顶部，在“窗口”菜单中退出全屏或返回游戏库。</p>
-        <p data-platform="win32" hidden>Windows 游戏中可使用自定义快捷键切换全屏或返回游戏库。</p>
-        <p>独立游戏窗口，随时回到游戏库。入口与登录会话保存在本机。</p>
+      </div>
+
+      <div id="settingsTabDerived" class="settings-tab-panel" role="tabpanel" data-settings-panel="derived" hidden>
+        <p class="settings-desc">游戏内外部 HTTPS 网页申请权限时，同意授权会自动标记为该游戏的衍生网页；你也可以在此手动添加或删除。</p>
+        <p id="derivedMessage" class="form-message" role="status"></p>
+        <div id="derivedGamesList" class="derived-games-list"></div>
+      </div>
+
+      <div id="settingsTabCache" class="settings-tab-panel" role="tabpanel" data-settings-panel="cache" hidden>
+        <p class="settings-desc">清理云游戏网页的本地缓存或会话数据。游戏列表、衍生网页与快捷键配置不会被删除。</p>
+        <div class="cache-cards">
+          <div class="cache-card">
+            <div>
+              <strong>清除网页缓存</strong>
+              <small>清除云游戏页面的 HTTP 缓存、脚本缓存与离线缓存，解决加载异常或资源卡顿；保留登录状态与游戏列表。</small>
+            </div>
+            <button id="clearCacheButton" class="outline-button" type="button">清除网页缓存</button>
+          </div>
+          <div class="cache-card">
+            <div>
+              <strong>清除登录与网站数据</strong>
+              <small>清空所有云游戏网站的 Cookie、登录会话、本地存储和缓存，相当于重置登录态；游戏列表、衍生网页与快捷键会保留。</small>
+            </div>
+            <button id="clearAllDataButton" class="danger-button" type="button">清除登录与网站数据</button>
+          </div>
+        </div>
+        <p id="cacheMessage" class="form-message" role="status"></p>
       </div>
       </div>
     </section>
@@ -138,6 +173,17 @@
       <div class="dialog-actions">
         <button id="deleteCancelButton" class="ghost-button" type="button">取消</button>
         <button id="deleteConfirmButton" class="danger-button" type="button">删除</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="clearDataDialog" class="confirm-dialog" aria-labelledby="clearDataTitle">
+    <form method="dialog">
+      <h2 id="clearDataTitle">清除登录与网站数据？</h2>
+      <p>将清空所有云游戏网站的 Cookie、登录会话、本地存储和缓存，下次打开游戏需要重新登录。游戏列表、衍生网页与快捷键会保留。</p>
+      <div class="dialog-actions">
+        <button id="clearDataCancelButton" class="ghost-button" type="button">取消</button>
+        <button id="clearDataConfirmButton" class="danger-button" type="button">确认清除</button>
       </div>
     </form>
   </dialog>
