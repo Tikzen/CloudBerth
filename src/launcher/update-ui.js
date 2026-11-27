@@ -31,7 +31,7 @@
       downloading: '正在下载更新包，可以关闭此窗口，下载会继续。',
       preparing: '下载已校验，正在准备安装文件…',
       ready: running.length ? '请先结束正在运行的游戏，再重启并更新。' : '安装文件已就绪。重启后自动完成替换，游戏库和登录数据会保留。',
-      installing: '正在退出并更新，请稍候…', error: '更新未完成，请重试。'
+      installing: '正在退出并更新，请稍候…', error: '更新未完成，请重试；如仍无法自动更新，请手动前往 GitHub Releases（github.com/Tikzen/CloudBerth/releases）下载新版覆盖替换，本地数据会保留。'
     };
     find('updateStatus').textContent = descriptions[state.status] || '';
     find('updateNotes').hidden = !available;

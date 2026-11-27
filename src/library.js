@@ -114,6 +114,54 @@ function validateShortcuts(raw) {
   return shortcuts;
 }
 
+const HOST_PATTERN = /^(?:\*\.)?(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i;
+
+function normalizeDerivedHost(raw) {
+  if (typeof raw !== 'string') {
+    throw new Error('请输入衍生网页的 HTTPS 网址或域名。');
+  }
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    throw new Error('请输入衍生网页的 HTTPS 网址或域名。');
+  }
+  let host = trimmed;
+  if (trimmed.includes('://')) {
+    let parsed;
+    try {
+      parsed = new URL(trimmed);
+    } catch {
+      throw new Error('请输入有效的 HTTPS 网址或域名（例如 stream.example.com）。');
+    }
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password || !parsed.hostname) {
+      throw new Error('衍生网页只允许 HTTPS 网址或域名（例如 stream.example.com）。');
+    }
+    host = parsed.hostname;
+  } else if (/[\s/?#:@]/.test(trimmed)) {
+    throw new Error('请输入有效的域名或完整的 HTTPS 网址（例如 stream.example.com）。');
+  }
+  const normalized = host.toLowerCase();
+  if (normalized.length > 253 || !HOST_PATTERN.test(normalized)) {
+    throw new Error(`衍生网页域名无效：${trimmed}`);
+  }
+  return normalized;
+}
+
+function validateDerivedHosts(raw) {
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) throw new Error('derivedHosts 必须是数组。');
+  if (raw.length > 50) throw new Error('单个游戏最多保存 50 个衍生网页。');
+  const seen = new Set();
+  const hosts = [];
+  for (const item of raw) {
+    const normalized = normalizeDerivedHost(item);
+    if (!seen.has(normalized)) {
+      seen.add(normalized);
+      hosts.push(normalized);
+    }
+  }
+  return hosts;
+}
+
 function validateGame(raw, { allowFileUrl = false } = {}) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('游戏条目格式无效。');
@@ -122,12 +170,13 @@ function validateGame(raw, { allowFileUrl = false } = {}) {
   if (!name || name.length > 80) {
     throw new Error('游戏名称长度必须为 1–80 个字符。');
   }
-  if (typeof raw.url !== 'string' || raw.url.length > 2048) {
+  const urlString = typeof raw.url === 'string' ? raw.url.trim() : '';
+  if (!urlString || urlString.length > 2048) {
     throw new Error(`“${name}”的网址无效。`);
   }
   let parsed;
   try {
-    parsed = new URL(raw.url);
+    parsed = new URL(urlString);
   } catch {
     throw new Error(`“${name}”的网址不是合法 URL。`);
   }
@@ -144,13 +193,15 @@ function validateGame(raw, { allowFileUrl = false } = {}) {
     }
     icons[key] = raw[key];
   }
+  const derivedHosts = validateDerivedHosts(raw.derivedHosts);
   return {
     id: typeof raw.id === 'string' && /^[a-zA-Z0-9-]{1,80}$/.test(raw.id)
       ? raw.id
       : randomUUID(),
     name,
     url: parsed.href,
-    ...icons
+    ...icons,
+    ...(derivedHosts.length ? { derivedHosts } : {})
   };
 }
 
@@ -241,6 +292,45 @@ function createLibraryStore(app, config, logger, { allowFileUrl = false } = {}) 
       persist();
       logger.info('Shortcuts updated', state.shortcuts);
       return snapshot();
+    },
+    getDerivedHosts(gameId) {
+      if (!gameId) return [];
+      const game = state.games.find((item) => item.id === gameId);
+      return game?.derivedHosts ? [...game.derivedHosts] : [];
+    },
+    addDerivedHost(gameId, rawHost, { allowExisting = false } = {}) {
+      const game = state.games.find((item) => item.id === gameId);
+      if (!game) throw new Error('找不到这个游戏，它可能已被删除。');
+      const host = normalizeDerivedHost(rawHost);
+      const existing = game.derivedHosts || [];
+      if (existing.includes(host)) {
+        if (allowExisting) return { added: false, host, state: snapshot() };
+        throw new Error('该衍生网页已在列表中。');
+      }
+      if (!allowExisting) {
+        try {
+          if (new URL(game.url).hostname.toLowerCase() === host) {
+            throw new Error('该域名已是此游戏的主网址，无需重复添加。');
+          }
+        } catch (error) {
+          if (error.message.includes('无需重复添加')) throw error;
+        }
+      }
+      game.derivedHosts = validateDerivedHosts([...existing, host]);
+      persist();
+      logger.info('Derived host added', { gameId, host });
+      return { added: true, host, state: snapshot() };
+    },
+    removeDerivedHost(gameId, rawHost) {
+      const game = state.games.find((item) => item.id === gameId);
+      if (!game) throw new Error('找不到这个游戏，它可能已被删除。');
+      const target = String(rawHost || '').trim().toLowerCase();
+      const next = (game.derivedHosts || []).filter((item) => item !== target);
+      if (next.length) game.derivedHosts = next;
+      else delete game.derivedHosts;
+      persist();
+      logger.info('Derived host removed', { gameId, host: target });
+      return snapshot();
     }
   };
 }
@@ -250,7 +340,9 @@ module.exports = {
   MAC_SHORTCUT_DEFAULTS,
   migrateShortcutDefaults,
   createLibraryStore,
+  normalizeDerivedHost,
   normalizeShortcut,
+  validateDerivedHosts,
   validateGame,
   validateGames,
   validateShortcuts

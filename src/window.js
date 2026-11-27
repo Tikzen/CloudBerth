@@ -2,11 +2,54 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { fileURLToPath, pathToFileURL } = require('node:url');
 const { BrowserWindow, screen } = require('electron');
 const { installShortcuts, setDisplayMode } = require('./shortcuts');
 const { PRODUCT_NAME } = require('./identity');
 
 const DEFAULT_BOUNDS = Object.freeze({ width: 1280, height: 720 });
+
+function normalizeLocalPath(filePath, platform = process.platform) {
+  const pathApi = platform === 'win32' ? path.win32 : path.posix;
+  const resolved = pathApi.resolve(filePath);
+  return platform === 'win32' ? resolved.toLowerCase() : resolved;
+}
+
+function fileUrlToLocalPath(candidateUrl, platform = process.platform) {
+  if (typeof candidateUrl !== 'string' || !candidateUrl) return null;
+  let parsed;
+  try {
+    parsed = new URL(candidateUrl);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== 'file:' || parsed.search) return null;
+  parsed.hash = '';
+  try {
+    return fileURLToPath(parsed, { windows: platform === 'win32' });
+  } catch {
+    return null;
+  }
+}
+
+function isSameLocalFileUrl(candidateUrl, expectedPath, platform = process.platform) {
+  if (!expectedPath) return false;
+  const candidatePath = fileUrlToLocalPath(candidateUrl, platform);
+  if (!candidatePath) return false;
+  if (normalizeLocalPath(candidatePath, platform) === normalizeLocalPath(expectedPath, platform)) {
+    return true;
+  }
+  if (platform === process.platform) {
+    try {
+      const real = fs.realpathSync.native || fs.realpathSync;
+      return normalizeLocalPath(real(candidatePath), platform) ===
+        normalizeLocalPath(real(expectedPath), platform);
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
 
 function getWindowStatePath(app) {
   return path.join(app.getPath('userData'), 'window-state.json');
@@ -83,16 +126,16 @@ function stripElectronToken(userAgent) {
     .trim();
 }
 
-function secureWebPreferences(persistentSession, config) {
+function secureWebPreferences(targetSession, config, { includePreload = false } = {}) {
   return {
-    session: persistentSession,
+    ...(targetSession ? { session: targetSession } : {}),
     nodeIntegration: false,
     contextIsolation: true,
     sandbox: true,
     webSecurity: true,
     allowRunningInsecureContent: false,
     devTools: config.enableDevTools,
-    preload: path.join(__dirname, 'preload.js'),
+    ...(includePreload ? { preload: path.join(__dirname, 'preload.js') } : {}),
     // Cloud streams must not be throttled when focus briefly moves elsewhere.
     backgroundThrottling: false
   };
@@ -106,7 +149,7 @@ function configureWebContents({
   persistentSession,
   logger,
   isMainWindow = false,
-  launcherUrl = null,
+  launcherPath = null,
   getShortcuts,
   onHome,
   shouldSuspendShortcuts,
@@ -114,6 +157,7 @@ function configureWebContents({
   shouldBypassUnload = () => false
 }) {
   let windowCloseRequested = false;
+  const isLauncherWindow = Boolean(isMainWindow && launcherPath);
 
   // A cloud-game page must not trap the user in the application with a
   // beforeunload handler. Ordinary page navigation keeps its normal warning.
@@ -140,6 +184,10 @@ function configureWebContents({
   });
 
   webContents.setWindowOpenHandler(({ url }) => {
+    if (isLauncherWindow) {
+      logger.warn('Blocked window.open from launcher window');
+      return { action: 'deny' };
+    }
     if (!safeWebProtocol(url)) {
       logger.warn('Blocked window.open with unsafe protocol', {
         protocol: protocolOf(url)
@@ -163,12 +211,19 @@ function configureWebContents({
   });
 
   webContents.on('will-navigate', (event, url) => {
+    if (isLauncherWindow) {
+      if (!isSameLocalFileUrl(url, launcherPath)) {
+        event.preventDefault();
+        logger.warn('Blocked external navigation in launcher window', {
+          protocol: protocolOf(url)
+        });
+      }
+      return;
+    }
     const isManualTestFile = isMainWindow &&
       config.startUrl.startsWith('file:') &&
       url.startsWith('file:');
-    const isLauncher = isMainWindow && launcherUrl &&
-      withoutFragment(url) === withoutFragment(launcherUrl);
-    if (!safeWebProtocol(url) && !isManualTestFile && !isLauncher) {
+    if (!safeWebProtocol(url) && !isManualTestFile) {
       event.preventDefault();
       logger.warn('Blocked unsafe navigation', {
         protocol: protocolOf(url)
@@ -177,6 +232,15 @@ function configureWebContents({
   });
 
   webContents.on('will-redirect', (event, url) => {
+    if (isLauncherWindow) {
+      if (!isSameLocalFileUrl(url, launcherPath)) {
+        event.preventDefault();
+        logger.warn('Blocked redirect in launcher window', {
+          protocol: protocolOf(url)
+        });
+      }
+      return;
+    }
     if (!safeWebProtocol(url)) {
       event.preventDefault();
       logger.warn('Blocked unsafe redirect', {
@@ -217,7 +281,7 @@ function configureWebContents({
 }
 
 function createMainWindow({
-  app, config, persistentSession, logger, library, launcherPath,
+  app, config, logger, library, launcherPath,
   show = true, onClose = () => false
 }) {
   const window = new BrowserWindow({
@@ -226,10 +290,10 @@ function createMainWindow({
     title: `${PRODUCT_NAME} · 游戏库`, autoHideMenuBar: true,
     backgroundColor: '#1f1a45',
     icon: path.join(app.getAppPath(), 'build', 'icon.png'),
-    webPreferences: secureWebPreferences(persistentSession, config)
+    webPreferences: secureWebPreferences(null, config, { includePreload: true })
   });
   window.setMenu(null);
-  const launcherUrl = require('node:url').pathToFileURL(launcherPath).href;
+  const launcherUrl = pathToFileURL(launcherPath).href;
   let shortcutCaptureActive = false;
   let shortcutCaptureAction = null;
   window.showLauncher = () => {
@@ -248,8 +312,8 @@ function createMainWindow({
     return shortcutCaptureActive;
   };
   configureWebContents({
-    webContents: window.webContents, window, app, config, persistentSession,
-    logger, isMainWindow: true, launcherUrl,
+    webContents: window.webContents, window, app, config,
+    logger, isMainWindow: true, launcherPath,
     getShortcuts: library.getShortcuts, onHome: window.showLauncher,
     shouldSuspendShortcuts: () => shortcutCaptureActive,
     onShortcutCapture: (result) => {
@@ -262,7 +326,7 @@ function createMainWindow({
     if (config.rememberWindowBounds) saveWindowBounds(app, window, logger);
     if (onClose()) { event.preventDefault(); window.hide(); }
   });
-  window.ready = window.loadFile(launcherPath);
+  window.ready = window.loadURL(launcherUrl);
   window.ready.catch((error) => logger.error('Launcher load failed', error.message));
   if (show) window.once('ready-to-show', () => window.show());
   return window;
@@ -278,8 +342,10 @@ function createGameWindow({
     webPreferences: secureWebPreferences(persistentSession, config)
   });
   window.setMenu(null);
+  window.gameId = game.id;
   window.showLauncher = () => onHome(window);
   const configure = (target, isMainWindow = false) => {
+    target.gameId = game.id;
     target.gameWindow = window;
     target.showLauncher = window.showLauncher;
     configureWebContents({
@@ -317,16 +383,6 @@ function createGameWindow({
   return window;
 }
 
-function withoutFragment(candidate) {
-  try {
-    const parsed = new URL(candidate);
-    parsed.hash = '';
-    return parsed.href;
-  } catch {
-    return candidate;
-  }
-}
-
 function protocolOf(candidate) {
   try {
     return new URL(candidate).protocol;
@@ -348,6 +404,9 @@ module.exports = {
   configureWebContents,
   createMainWindow,
   createGameWindow,
+  fileUrlToLocalPath,
+  isSameLocalFileUrl,
+  normalizeLocalPath,
   safeWebProtocol,
   stripElectronToken
 };

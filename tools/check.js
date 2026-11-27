@@ -10,14 +10,18 @@ const { platformDefaults } = require('../src/platform');
 const {
   createLibraryStore,
   migrateShortcutDefaults,
+  normalizeDerivedHost,
   normalizeShortcut,
+  validateDerivedHosts,
   validateGames,
   validateShortcuts
 } = require('../src/library');
 const {
+  configurePermissions,
   createTrustChecker,
   hostnameMatches
 } = require('../src/permissions');
+const { isSameLocalFileUrl } = require('../src/window');
 
 const projectRoot = path.resolve(__dirname, '..');
 const sourceFiles = [
@@ -100,6 +104,24 @@ assert.equal(trustDefaultHost('https://login.example.com/'), false);
 assert.equal(trustDefaultHost('http://example.com/'), false);
 assert.equal(trustDefaultHost('file:///C:/Windows/System32/calc.exe'), false);
 
+// Launcher local file URL matching across Windows 8.3 short paths, casing and special chars.
+const winShortLauncher = 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\2z1234\\resources\\app.asar\\src\\launcher\\index.html';
+assert.equal(isSameLocalFileUrl('file:///C:/Users/ADMINI~1/AppData/Local/Temp/2z1234/resources/app.asar/src/launcher/index.html', winShortLauncher, 'win32'), true);
+assert.equal(isSameLocalFileUrl('file:///c:/Users/ADMINI%7E1/AppData/Local/Temp/2z1234/resources/app.asar/src/launcher/index.html#top', winShortLauncher, 'win32'), true);
+assert.equal(isSameLocalFileUrl('file:///C:/Users/ADMINI~1/AppData/Local/Temp/2z1234/resources/app.asar/src/launcher/index.html?evil=1', winShortLauncher, 'win32'), false);
+assert.equal(isSameLocalFileUrl('https://example.com/src/launcher/index.html', winShortLauncher, 'win32'), false);
+const winBracketLauncher = 'C:\\Users\\Player[1]\\100%Game\\src\\launcher\\index.html';
+assert.equal(isSameLocalFileUrl('file:///C:/Users/Player%5B1%5D/100%25Game/src/launcher/index.html', winBracketLauncher, 'win32'), true);
+assert.equal(isSameLocalFileUrl('file:///C:/Users/Player[1]/100%25Game/src/launcher/index.html', winBracketLauncher, 'win32'), true);
+
+// Derived webpage host normalization, validation and interactive authorization flow.
+assert.equal(normalizeDerivedHost('https://Stream.Example.COM/play?id=1'), 'stream.example.com');
+assert.equal(normalizeDerivedHost('*.Cloud.Example.com'), '*.cloud.example.com');
+assert.throws(() => normalizeDerivedHost('http://stream.example.com'), /HTTPS/);
+assert.throws(() => normalizeDerivedHost('bad host/path'), /有效/);
+assert.deepEqual(validateDerivedHosts(['Stream.Example.com', 'https://stream.example.com/a']), ['stream.example.com']);
+assert.equal(validateGames([{ name: 'Trimmed', url: ' https://example.com/play ', derivedHosts: ['https://cdn.example.com/x'] }])[0].derivedHosts[0], 'cdn.example.com');
+
 assert.throws(
   () => validateConfig({ ...defaults, startUrl: 'javascript:alert(1)' }, defaultsPath, false),
   /只允许 https/
@@ -158,8 +180,61 @@ try {
     assert.equal(createLibraryStore(fakeApp, first.config, logger).getShortcuts().toggleDisplay, 'Ctrl+Meta+F',
       'The migration must run once, preserving later explicit user changes');
   }
-} finally {
+  // Test derived host persistence and interactive permission approval / decline flow.
+  const permLogger = { info() {}, warn() {} };
+  const store = createLibraryStore(fakeApp, first.config, permLogger);
+  const game = store.getGames()[0];
+  let checkHandler, requestHandler;
+  const fakeSession = {
+    setPermissionCheckHandler: (fn) => { checkHandler = fn; },
+    setPermissionRequestHandler: (fn) => { requestHandler = fn; }
+  };
+  let promptCalls = 0, nextApproval = false, closedCount = 0;
+  const fakeWindow = { isDestroyed: () => false, close: () => { closedCount++; } };
+  const fakeWebContents = { id: 1 };
+  configurePermissions(fakeSession, first.config, permLogger, {
+    getGameUrls: () => store.getGames().map((g) => g.url),
+    getDerivedHosts: (id) => store.getDerivedHosts(id),
+    getGameForWebContents: (wc) => wc === fakeWebContents ? { id: game.id, name: game.name, window: fakeWindow } : null,
+    promptDerivedHost: async () => { promptCalls++; return nextApproval; },
+    onApproveDerivedHost: (id, host) => store.addDerivedHost(id, host, { allowExisting: true })
+  });
+  const ask = (permission, requestingUrl) => new Promise((resolve) => {
+    requestHandler(fakeWebContents, permission, resolve, { requestingUrl });
+  });
+  Promise.resolve().then(async () => {
+    assert.equal(await ask('fullscreen', 'https://stream.other.com/play'), false);
+    assert.equal(await ask('notifications', 'https://stream.other.com/play'), false);
+    assert.equal(promptCalls, 0);
+    assert.equal(closedCount, 0);
+    assert.equal(await ask('pointerLock', 'https://stream.other.com/play'), false);
+    assert.equal(promptCalls, 1);
+    assert.equal(closedCount, 1);
+    assert.deepEqual(store.getDerivedHosts(game.id), []);
+    nextApproval = true;
+    const [r1, r2] = await Promise.all([
+      ask('pointerLock', 'https://stream.other.com/play'),
+      ask('media', 'https://stream.other.com/play')
+    ]);
+    assert.equal(r1, true);
+    assert.equal(r2, true);
+    assert.equal(promptCalls, 2);
+    assert.deepEqual(store.getDerivedHosts(game.id), ['stream.other.com']);
+    assert.equal(checkHandler(fakeWebContents, 'pointerLock', 'https://stream.other.com', { requestingUrl: 'https://stream.other.com/play' }), true);
+    assert.equal(await ask('keyboardLock', 'https://stream.other.com/play'), true);
+    assert.equal(promptCalls, 2, 'Approved derived host must not prompt again');
+    store.removeDerivedHost(game.id, 'stream.other.com');
+    assert.equal(checkHandler(fakeWebContents, 'pointerLock', 'https://stream.other.com', { requestingUrl: 'https://stream.other.com/play' }), false);
+    console.log('PASS: launcher file URL normalization, derived webpage authorization and revocation.');
+  }).catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  }).finally(() => {
+    fs.rmSync(temp, { recursive: true, force: true });
+  });
+} catch (error) {
   fs.rmSync(temp, { recursive: true, force: true });
+  throw error;
 }
 
 console.log(`PASS: ${sourceFiles.length} JavaScript files passed syntax checks.`);

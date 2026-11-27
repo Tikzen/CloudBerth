@@ -148,6 +148,9 @@ function createIconService({ logger = { warn() {} } } = {}) {
       pending.set(url, job);
       try { return await job; } finally { pending.delete(url); }
     },
+    clearCache() {
+      cache.clear();
+    },
     async chooseAvatar(parent) {
       const result = await dialog.showOpenDialog(parent, {
         title: '选择游戏头像', buttonLabel: '使用这张图片', properties: ['openFile'],

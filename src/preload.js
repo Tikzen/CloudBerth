@@ -22,6 +22,11 @@ if (location.protocol === 'file:' &&
     stopGame: (id) => ipcRenderer.invoke('launcher:stop-game', id),
     chooseAvatar: () => ipcRenderer.invoke('launcher:choose-avatar'),
     fetchIcon: (url) => ipcRenderer.invoke('launcher:fetch-icon', url),
+    addDerivedHost: (gameId, host) =>
+      ipcRenderer.invoke('launcher:add-derived-host', gameId, host),
+    removeDerivedHost: (gameId, host) =>
+      ipcRenderer.invoke('launcher:remove-derived-host', gameId, host),
+    clearCache: (mode) => ipcRenderer.invoke('launcher:clear-cache', mode),
     onStateChanged: (callback) => {
       if (typeof callback !== 'function') throw new TypeError('Expected a callback.');
       const listener = (_event, state) => callback(state);
